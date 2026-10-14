@@ -1,0 +1,31 @@
+
+Plain retrieval: fixed_overlap; top-k chunks: 3
+| Query | Relevant parents | Retrieved parents | Precision | Recall |
+|---|---|---|---|---|
+| q01 | 01_appointment_booking | 01_appointment_booking | 1 relevant of 1 retrieved = 1.000000 | 1 retrieved of 1 relevant = 1.000000 |
+| q02 | 02_cancellation_rescheduling | 02_cancellation_rescheduling, 12_home_visits | 1 relevant of 2 retrieved = 0.500000 | 1 retrieved of 1 relevant = 1.000000 |
+| q03 | 03_consultation_fees | 03_consultation_fees, 10_follow_up_discount, 07_telemedicine | 1 relevant of 3 retrieved = 0.333333 | 1 retrieved of 1 relevant = 1.000000 |
+| q04 | 06_lab_turnaround | 06_lab_turnaround, 04_insurance_claims | 1 relevant of 2 retrieved = 0.500000 | 1 retrieved of 1 relevant = 1.000000 |
+| q05 | 10_follow_up_discount | 10_follow_up_discount, 03_consultation_fees | 1 relevant of 2 retrieved = 0.500000 | 1 retrieved of 1 relevant = 1.000000 |
+| q06 | 04_insurance_claims | 04_insurance_claims | 1 relevant of 1 retrieved = 1.000000 | 1 retrieved of 1 relevant = 1.000000 |
+| q07 | 10_follow_up_discount | 10_follow_up_discount, 02_cancellation_rescheduling | 1 relevant of 2 retrieved = 0.500000 | 1 retrieved of 1 relevant = 1.000000 |
+| q08 | 12_home_visits, 03_consultation_fees | 03_consultation_fees, 12_home_visits | 2 relevant of 2 retrieved = 1.000000 | 2 retrieved of 2 relevant = 1.000000 |
+| q09 | 11_second_opinion, 07_telemedicine | 11_second_opinion, 07_telemedicine | 2 relevant of 2 retrieved = 1.000000 | 2 retrieved of 2 relevant = 1.000000 |
+| Macro average | | | 0.703704 | 1.000000 |
+Historical plain baseline: precision=0.703704, recall=1.000000; current=0.703704/1.000000; six-decimal match=True
+
+Plain retrieval: sentence; top-k chunks: 3
+| Query | Relevant parents | Retrieved parents | Precision | Recall |
+|---|---|---|---|---|
+| q01 | 01_appointment_booking | 01_appointment_booking | 1 relevant of 1 retrieved = 1.000000 | 1 retrieved of 1 relevant = 1.000000 |
+| q02 | 02_cancellation_rescheduling | 02_cancellation_rescheduling | 1 relevant of 1 retrieved = 1.000000 | 1 retrieved of 1 relevant = 1.000000 |
+| q03 | 03_consultation_fees | 03_consultation_fees, 07_telemedicine, 10_follow_up_discount | 1 relevant of 3 retrieved = 0.333333 | 1 retrieved of 1 relevant = 1.000000 |
+| q04 | 06_lab_turnaround | 06_lab_turnaround | 1 relevant of 1 retrieved = 1.000000 | 1 retrieved of 1 relevant = 1.000000 |
+| q05 | 10_follow_up_discount | 10_follow_up_discount, 03_consultation_fees | 1 relevant of 2 retrieved = 0.500000 | 1 retrieved of 1 relevant = 1.000000 |
+| q06 | 04_insurance_claims | 04_insurance_claims | 1 relevant of 1 retrieved = 1.000000 | 1 retrieved of 1 relevant = 1.000000 |
+| q07 | 10_follow_up_discount | 03_consultation_fees, 10_follow_up_discount, 12_home_visits | 1 relevant of 3 retrieved = 0.333333 | 1 retrieved of 1 relevant = 1.000000 |
+| q08 | 12_home_visits, 03_consultation_fees | 03_consultation_fees, 12_home_visits, 04_insurance_claims | 2 relevant of 3 retrieved = 0.666667 | 2 retrieved of 2 relevant = 1.000000 |
+| q09 | 11_second_opinion, 07_telemedicine | 11_second_opinion, 07_telemedicine | 2 relevant of 2 retrieved = 1.000000 | 2 retrieved of 2 relevant = 1.000000 |
+| Macro average | | | 0.759259 | 1.000000 |
+Historical plain baseline: precision=0.759259, recall=1.000000; current=0.759259/1.000000; six-decimal match=True
+Recommendation: use sentence with recall 1.000000 and precision 0.759259, choosing by recall then precision and preferring sentence on an exact tie.

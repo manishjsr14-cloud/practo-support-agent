@@ -1,0 +1,109 @@
+MOCK_LLM=true; strategy=sentence
+
+Question: How do I book an appointment and know that my slot is confirmed?
+Similarity: 0.745053649; threshold: 0.319332987
+Fallback: False
+Answer: Your appointment is confirmed only when clinic staff issue an appointment record ID and mark it Scheduled; requesting a slot does not reserve it. Staff quote the standard consultation fee before confirmation and record any appointment-specific adjustment in your booking.
+
+To request an appointment, provide your patient reference, the specialty, a preferred clinician or a request for any available clinician, and your preferred date and time. Routine appointments can be requested up to 30 calendar days in advance, subject to clinician and slot availability.
+
+The support service can explain these steps and check existing appointment records, while clinic staff handle bookings, slot reservations, and payments.
+Sources: 01_appointment_booking, 01_appointment_booking, 01_appointment_booking
+Cited chunks: 01_appointment_booking:sentence:001, 01_appointment_booking:sentence:000, 01_appointment_booking:sentence:002
+
+Question: What is the cancellation and rescheduling window?
+Similarity: 0.548343599; threshold: 0.319332987
+Fallback: False
+Answer: You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+
+Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.
+
+The support service explains these rules, but clinic staff must make booking changes and approve refunds.
+Sources: 02_cancellation_rescheduling, 02_cancellation_rescheduling, 02_cancellation_rescheduling
+Cited chunks: 02_cancellation_rescheduling:sentence:000, 02_cancellation_rescheduling:sentence:001, 02_cancellation_rescheduling:sentence:002
+
+Question: What are the consultation fees for each specialty?
+Similarity: 0.694779396; threshold: 0.319332987
+Fallback: False
+Answer: Standard consultation fees for new bookings are INR 500 for General Medicine, INR 1200 for Cardiology, INR 800 for Dermatology, INR 600 for Pediatrics, and INR 1000 for Orthopedics. Each fee covers one consultation with the booked clinician and excludes medicines, laboratory tests, procedures, and home-visit travel charges.
+
+The booked clinician decides whether remote consultation is suitable and may ask you to arrange an in-person visit. The selected specialty's standard consultation fee applies, while the fee recorded for an existing appointment remains authoritative.
+
+Only one discounted follow-up is allowed for each original completed consultation, and it cannot be combined with another consultation-fee offer. A visit after seven calendar days, with another clinician, or for a different concern costs the standard consultation fee unless staff record a separate adjustment.
+Sources: 03_consultation_fees, 07_telemedicine, 10_follow_up_discount
+Cited chunks: 03_consultation_fees:sentence:000, 07_telemedicine:sentence:001, 10_follow_up_discount:sentence:001
+
+Question: How long do routine and specialized lab test reports take?
+Similarity: 0.647959828; threshold: 0.319332987
+Fallback: False
+Answer: Indicative laboratory turnaround times are 24 hours for routine blood tests, 72 hours for culture tests, and five business days for specialized tests. These estimates start when the laboratory receives both a usable sample and a complete test request, rather than when you book an appointment.
+
+Support can explain these timings, but laboratory results are not available in appointment records, and support does not interpret results or guarantee a release time.
+
+A repeat sample, an incomplete request, or referral to an outside laboratory may extend the wait, and staff provide a revised estimate when they identify a delay. If the quoted time has passed, ask clinic staff to check your test reference and release status.
+Sources: 06_lab_turnaround, 06_lab_turnaround, 06_lab_turnaround
+Cited chunks: 06_lab_turnaround:sentence:000, 06_lab_turnaround:sentence:002, 06_lab_turnaround:sentence:001
+
+Question: When does a follow-up visit qualify for a discount?
+Similarity: 0.728021502; threshold: 0.319332987
+Fallback: False
+Answer: A follow-up visit receives a 20 percent consultation-fee discount when it takes place within seven calendar days after a completed consultation with the same clinician, in the same specialty, and for the same concern. An eligible follow-up costs 80 percent of that specialty's standard new-booking fee; medicines, tests, procedures, and any home-visit travel charge are excluded from the discount.
+
+Only one discounted follow-up is allowed for each original completed consultation, and it cannot be combined with another consultation-fee offer. A visit after seven calendar days, with another clinician, or for a different concern costs the standard consultation fee unless staff record a separate adjustment.
+
+For an existing appointment, the consultation fee recorded in that booking is authoritative and may differ from the standard fee because of a documented adjustment. An eligible follow-up receives the discount described in the follow-up-discount policy, calculated from the specialty's standard consultation fee.
+Sources: 10_follow_up_discount, 10_follow_up_discount, 03_consultation_fees
+Cited chunks: 10_follow_up_discount:sentence:000, 10_follow_up_discount:sentence:001, 03_consultation_fees:sentence:001
+
+Question: How do I submit an insurance reimbursement claim?
+Similarity: 0.514510751; threshold: 0.319332987
+Fallback: False
+Answer: Patients pay the clinic directly and can request documents for insurance reimbursement; cashless treatment and direct insurer billing are not offered. To request insurance documents, provide your appointment record ID, payment receipt, and any document checklist from your insurer.
+
+After staff verify that the appointment is Completed and paid, they provide an itemized consultation receipt and available clinician-approved visit documents within three business days. Your insurer decides coverage, claim deadlines, approval, and reimbursement amounts, so payment of a claim is not guaranteed.
+
+The support service can explain how to request documents; submitting claims, accessing insurer accounts, and deciding insurance eligibility are outside its role.
+Sources: 04_insurance_claims, 04_insurance_claims, 04_insurance_claims
+Cited chunks: 04_insurance_claims:sentence:000, 04_insurance_claims:sentence:001, 04_insurance_claims:sentence:002
+
+Question: My doctor asked me to come back, do I have to pay the full price again?
+Similarity: 0.577073753; threshold: 0.319332987
+Fallback: False
+Answer: Clinic staff must quote separate charges before confirmation; support must use the listed prices and leave recorded fees unchanged.
+
+Only one discounted follow-up is allowed for each original completed consultation, and it cannot be combined with another consultation-fee offer. A visit after seven calendar days, with another clinician, or for a different concern costs the standard consultation fee unless staff record a separate adjustment.
+
+A standard home visit costs INR 800 in total: INR 500 for the General Medicine consultation plus a separate INR 300 travel surcharge, with any eligible follow-up discount applied only to the consultation fee. The travel surcharge is refunded only when a cancellation qualifies under the cancellation policy and occurs before the clinician is dispatched; consultation-fee refunds follow that policy.
+Sources: 03_consultation_fees, 10_follow_up_discount, 12_home_visits
+Cited chunks: 03_consultation_fees:sentence:002, 10_follow_up_discount:sentence:001, 12_home_visits:sentence:001
+
+Question: What will I pay for a home visit by a cardiologist?
+Similarity: 0.572593331; threshold: 0.319332987
+Fallback: False
+Answer: Standard consultation fees for new bookings are INR 500 for General Medicine, INR 1200 for Cardiology, INR 800 for Dermatology, INR 600 for Pediatrics, and INR 1000 for Orthopedics. Each fee covers one consultation with the booked clinician and excludes medicines, laboratory tests, procedures, and home-visit travel charges.
+
+A standard home visit costs INR 800 in total: INR 500 for the General Medicine consultation plus a separate INR 300 travel surcharge, with any eligible follow-up discount applied only to the consultation fee. The travel surcharge is refunded only when a cancellation qualifies under the cancellation policy and occurs before the clinician is dispatched; consultation-fee refunds follow that policy.
+
+Patients pay the clinic directly and can request documents for insurance reimbursement; cashless treatment and direct insurer billing are not offered. To request insurance documents, provide your appointment record ID, payment receipt, and any document checklist from your insurer.
+Sources: 03_consultation_fees, 12_home_visits, 04_insurance_claims
+Cited chunks: 03_consultation_fees:sentence:000, 12_home_visits:sentence:001, 04_insurance_claims:sentence:000
+
+Question: Can I get a second opinion over a video call?
+Similarity: 0.396036744; threshold: 0.319332987
+Fallback: False
+Answer: A second opinion is a separate consultation charged at the receiving specialty's standard fee and does not qualify for the same-clinician follow-up discount. Previous consultation documents are shared with the reviewing clinician only through the clinic's approved process and with your consent.
+
+Routine telemedicine consultations are available only for General Medicine and Dermatology patients aged 18 years or older, subject to clinician approval. Before a video consultation, you need a supported video connection, completion of the clinic's identity check, and recorded consent.
+
+You can request a second-opinion appointment with a different clinician by stating the specialty and providing any available documents from your previous consultation. Staff acknowledge a complete request within three business days and offer an appointment subject to clinician and slot availability.
+Sources: 11_second_opinion, 07_telemedicine, 11_second_opinion
+Cited chunks: 11_second_opinion:sentence:001, 07_telemedicine:sentence:000, 11_second_opinion:sentence:000
+
+Question: Give me a recipe for chocolate brownies.
+Similarity: 0.054437876; threshold: 0.319332987
+Fallback: True
+Answer: I don't know based on the available clinic-policy context.
+Sources: (none)
+Cited chunks: (none)
+
+Demo completed; inspect the quoted context to assess each answer.

@@ -1,0 +1,47 @@
+
+Unsupported queries: fixed_overlap
+Can you diagnose my chest pain? | top1=0.256390333 | threshold=0.293028146 | FALLBACK
+Answer: I don't know based on the available clinic-policy context.
+Sources: (none)
+Which medicine should I take for a fever? | top1=0.272614956 | threshold=0.293028146 | FALLBACK
+Answer: I don't know based on the available clinic-policy context.
+Sources: (none)
+What are the clinic's opening hours on Sundays? | top1=0.486783445 | threshold=0.293028146 | ANSWER
+Answer: To request an appointment, provide your patient reference, the specialty, a preferred clinician or a request for any available clinician, and your preferred date and time. Routine appointments can be requested up to 30 calendar days in advance, subject to clinician and slot availability. Your appointment is confirmed o
+
+Non-emergency home visits are available only for General Medicine patients aged 18 years or older with an address within five kilometres of the clinic. Visit slots run from 09:00 to 17:00 local clinic time, and staff must confirm clinician availability and address eligibility. A standard home visit costs INR 800 in tot
+
+nce, subject to clinician and slot availability. Your appointment is confirmed only when clinic staff issue an appointment record ID and mark it Scheduled; requesting a slot does not reserve it. Staff quote the standard consultation fee before confirmation and record any appointment-specific adjustment in your booking.
+Sources: 01_appointment_booking, 12_home_visits, 01_appointment_booking
+Which hospital in Mumbai has the shortest waiting time? | top1=0.421420097 | threshold=0.293028146 | ANSWER
+Answer: st request, rather than when you book an appointment. A repeat sample, an incomplete request, or referral to an outside laboratory may extend the wait, and staff provide a revised estimate when they identify a delay. If the quoted time has passed, ask clinic staff to check your test reference and release status. Suppor
+
+To request an appointment, provide your patient reference, the specialty, a preferred clinician or a request for any available clinician, and your preferred date and time. Routine appointments can be requested up to 30 calendar days in advance, subject to clinician and slot availability. Your appointment is confirmed o
+
+Non-emergency home visits are available only for General Medicine patients aged 18 years or older with an address within five kilometres of the clinic. Visit slots run from 09:00 to 17:00 local clinic time, and staff must confirm clinician availability and address eligibility. A standard home visit costs INR 800 in tot
+Sources: 06_lab_turnaround, 01_appointment_booking, 12_home_visits
+Sunday cosine 0.486783445 above weakest calibrated in-scope 0.440953672: True
+
+Unsupported queries: sentence
+Can you diagnose my chest pain? | top1=0.263177156 | threshold=0.319332987 | FALLBACK
+Answer: I don't know based on the available clinic-policy context.
+Sources: (none)
+Which medicine should I take for a fever? | top1=0.202158451 | threshold=0.319332987 | FALLBACK
+Answer: I don't know based on the available clinic-policy context.
+Sources: (none)
+What are the clinic's opening hours on Sundays? | top1=0.524604023 | threshold=0.319332987 | ANSWER
+Answer: Non-emergency home visits are available only for General Medicine patients aged 18 years or older with an address within five kilometres of the clinic. Visit slots run from 09:00 to 17:00 local clinic time, and staff must confirm clinician availability and address eligibility.
+
+To request an appointment, provide your patient reference, the specialty, a preferred clinician or a request for any available clinician, and your preferred date and time. Routine appointments can be requested up to 30 calendar days in advance, subject to clinician and slot availability.
+
+The support service can explain these steps and check existing appointment records, while clinic staff handle bookings, slot reservations, and payments.
+Sources: 12_home_visits, 01_appointment_booking, 01_appointment_booking
+Which hospital in Mumbai has the shortest waiting time? | top1=0.439948082 | threshold=0.319332987 | ANSWER
+Answer: Non-emergency home visits are available only for General Medicine patients aged 18 years or older with an address within five kilometres of the clinic. Visit slots run from 09:00 to 17:00 local clinic time, and staff must confirm clinician availability and address eligibility.
+
+A repeat sample, an incomplete request, or referral to an outside laboratory may extend the wait, and staff provide a revised estimate when they identify a delay. If the quoted time has passed, ask clinic staff to check your test reference and release status.
+
+To request an appointment, provide your patient reference, the specialty, a preferred clinician or a request for any available clinician, and your preferred date and time. Routine appointments can be requested up to 30 calendar days in advance, subject to clinician and slot availability.
+Sources: 12_home_visits, 06_lab_turnaround, 01_appointment_booking
+Sunday cosine 0.524604023 above weakest calibrated in-scope 0.486387312: True
+Unsupported answers expose similarity-only limits; no threshold was retuned.

@@ -1,0 +1,18 @@
+Question: What is the cancellation and rescheduling window?
+Cosine similarity = 1 - cosine distance
+
+Collection strategy: fixed_overlap
+Chunk: 02_cancellation_rescheduling:fixed_overlap:000; parent: 02_cancellation_rescheduling; cosine similarity: 0.575331211
+Retrieved text: You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee re
+Chunk: 02_cancellation_rescheduling:fixed_overlap:001; parent: 02_cancellation_rescheduling; cosine similarity: 0.555839777
+Retrieved text: tment; a later patient cancellation or a No-Show receives no consultation-fee refund. Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of n
+Chunk: 12_home_visits:fixed_overlap:002; parent: 12_home_visits; cosine similarity: 0.410351813
+Retrieved text: n fee. The travel surcharge is refunded only when a cancellation qualifies under the cancellation policy and occurs before the clinician is dispatched; consultation-fee refunds follow that policy. Clinic staff arrange address checks, clinician approval, and booking; support can explain the rules but cannot verify an ad
+
+Collection strategy: sentence
+Chunk: 02_cancellation_rescheduling:sentence:000; parent: 02_cancellation_rescheduling; cosine similarity: 0.548343599
+Retrieved text: You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+Chunk: 02_cancellation_rescheduling:sentence:001; parent: 02_cancellation_rescheduling; cosine similarity: 0.484060645
+Retrieved text: Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.
+Chunk: 02_cancellation_rescheduling:sentence:002; parent: 02_cancellation_rescheduling; cosine similarity: 0.413225174
+Retrieved text: The support service explains these rules, but clinic staff must make booking changes and approve refunds.

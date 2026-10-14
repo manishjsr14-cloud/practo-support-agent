@@ -1,0 +1,13 @@
+01_appointment_booking: 5 sentences
+02_cancellation_rescheduling: 5 sentences
+03_consultation_fees: 5 sentences
+04_insurance_claims: 5 sentences
+05_prescription_refills: 5 sentences
+06_lab_turnaround: 5 sentences
+07_telemedicine: 5 sentences
+08_emergency_protocol: 5 sentences
+09_patient_privacy: 5 sentences
+10_follow_up_discount: 5 sentences
+11_second_opinion: 5 sentences
+12_home_visits: 5 sentences
+KB validation: PASS; documents=12; required filenames present

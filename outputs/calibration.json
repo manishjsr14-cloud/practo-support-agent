@@ -1,0 +1,84 @@
+{
+  "strategies": {
+    "fixed_overlap": {
+      "threshold": 0.2930281460285187,
+      "measurements": [
+        {
+          "label": "in_scope",
+          "query": "How can I reserve a clinic appointment?",
+          "similarity": 0.734329104423523
+        },
+        {
+          "label": "in_scope",
+          "query": "How much does a Cardiology consultation cost?",
+          "similarity": 0.6748738884925842
+        },
+        {
+          "label": "in_scope",
+          "query": "What documents are needed for an insurance claim?",
+          "similarity": 0.44095367193222046
+        },
+        {
+          "label": "in_scope",
+          "query": "Who is allowed to authorize a prescription refill?",
+          "similarity": 0.6050159931182861
+        },
+        {
+          "label": "out_of_scope",
+          "query": "How do I repair a punctured bicycle tyre?",
+          "similarity": 0.1451026201248169
+        },
+        {
+          "label": "out_of_scope",
+          "query": "What is the orbital period of Neptune?",
+          "similarity": 0.14351940155029297
+        },
+        {
+          "label": "out_of_scope",
+          "query": "Write a sorting algorithm in Rust.",
+          "similarity": 0.0752747654914856
+        }
+      ]
+    },
+    "sentence": {
+      "threshold": 0.3193329870700836,
+      "measurements": [
+        {
+          "label": "in_scope",
+          "query": "How can I reserve a clinic appointment?",
+          "similarity": 0.7461771965026855
+        },
+        {
+          "label": "in_scope",
+          "query": "How much does a Cardiology consultation cost?",
+          "similarity": 0.7085902690887451
+        },
+        {
+          "label": "in_scope",
+          "query": "What documents are needed for an insurance claim?",
+          "similarity": 0.48638731241226196
+        },
+        {
+          "label": "in_scope",
+          "query": "Who is allowed to authorize a prescription refill?",
+          "similarity": 0.6002084016799927
+        },
+        {
+          "label": "out_of_scope",
+          "query": "How do I repair a punctured bicycle tyre?",
+          "similarity": 0.15227866172790527
+        },
+        {
+          "label": "out_of_scope",
+          "query": "What is the orbital period of Neptune?",
+          "similarity": 0.14732497930526733
+        },
+        {
+          "label": "out_of_scope",
+          "query": "Write a sorting algorithm in Rust.",
+          "similarity": 0.08297228813171387
+        }
+      ]
+    }
+  }
+}

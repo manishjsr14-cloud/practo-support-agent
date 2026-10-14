@@ -1,0 +1,5 @@
+fixed_overlap: 39 chunks
+sentence: 36 chunks
+Model: sentence-transformers/all-MiniLM-L6-v2; revision: c9745ed1d9f207416be6d2e6f8de32d1f16199bf
+Fixed size=320; overlap=80; sentence size=2
+HF_HUB_OFFLINE=1; ANONYMIZED_TELEMETRY=False; CREWAI_DISABLE_TELEMETRY=true
