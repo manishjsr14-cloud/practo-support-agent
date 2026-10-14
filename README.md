@@ -116,4 +116,18 @@ The Sunday-hours sentence score, 0.524604023, exceeds the weakest legitimate cal
 
 All 11 tests and the full pipeline passed, as did `pip check`. [Tests](outputs/tests.txt) · [Dependencies](outputs/setup.txt). Bash execution and downloading into an empty model cache were not verified; the Windows run used the cached checkpoint.
 
-TODO (in my own words): what I learned
+TODO (in my own words): What I learned: A similarity score measures how close a question sounds to a policy
+text; it doesn't show that the text answers the question. The clearest example is the
+Sunday-opening-hours question, which my policies can't answer but which scored 0.525,
+higher than my weakest legitimate question (the insurance query at 0.486). So no single
+threshold could reject it without also rejecting a real question. The demo showed the
+same thing: the answer to the cardiologist home-visit question quoted the fees and the
+INR 800 home-visit price but never said that home visits are only for General Medicine,
+so retrieval can miss important text and still look like a good answer.
+
+I also learned that different chunking strategies suit different situations, and that
+my choice between them is weaker than the averages suggest. Sentence chunks scored 0.759
+against 0.704 for fixed chunks, but each strategy won two of the nine queries (sentence
+on q02 and q04, fixed on q07 and q08), and the gap comes from the size of the wins, so
+nine queries is a small sample. In Part 2 I will add a check that the question's key
+terms actually appear in the retrieved text.
