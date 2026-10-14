@@ -20,7 +20,7 @@ I preserved the supplied dataset, JSON, KB and requirements. KB standard prices 
 
 ## Run
 
-Setup needs internet once to install dependencies and cache the pinned model. Run from the repository root.
+I verified Python 3.12.10 on Windows. Setup needs internet once to install dependencies and cache the pinned model. Run from the repository root.
 
 PowerShell:
 
@@ -34,7 +34,7 @@ python -m venv .venv
 Bash:
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', revision='c9745ed1d9f207416be6d2e6f8de32d1f16199bf')"
 .venv/bin/python run_part1.py

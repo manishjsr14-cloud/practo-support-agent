@@ -11,7 +11,7 @@ test_saved_calibration_separates_observed_clusters (test_part1.Part1Tests.test_s
 test_search_returns_plain_top_three (test_part1.Part1Tests.test_search_returns_plain_top_three) ... ok
 
 ----------------------------------------------------------------------
-Ran 11 tests in 9.731s
+Ran 11 tests in 12.096s
 
 OK
 fixed_overlap: 39 chunks
