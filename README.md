@@ -1,6 +1,6 @@
 # Practo (Healthcare) — Part 1 completed
 
-I built a local policy retriever with deterministic `MOCK_LLM` answers and zero API keys. My preserved dataset has 50 fabricated appointments, including 13 follow-ups (26.00%), and my handwritten KB has 12 policies.
+I built a local policy retriever with deterministic `MOCK_LLM` answers and zero API keys. My dataset has 50 fabricated appointments, including 13 follow-ups (26.00%), and my handwritten KB has 12 policies.
 
 ## Dataset choices
 
@@ -16,7 +16,7 @@ I use seed 42, reserving one record per category and status before weighted draw
 
 Status weights: Completed 0.45, Scheduled 0.25, Cancelled 0.12, Rescheduled 0.10, No-Show 0.08. Overall fee range: 300–1500 INR; required follow-up band: 10–30%. These ranges reflect typical Indian outpatient consultation fees, with general practice at the low end and cardiology at the high end because of specialist training and diagnostic overhead.
 
-I preserved the supplied dataset, JSON, KB and requirements. KB standard prices apply to new bookings; an existing appointment’s recorded fee remains authoritative. [Dataset](outputs/dataset.txt) · [Named-topic and sentence validation](outputs/kb.txt).
+I reused my dataset, KB and requirements. KB standard prices apply to new bookings; an existing appointment’s recorded fee remains authoritative. [Dataset](outputs/dataset.txt) · [Named-topic and sentence validation](outputs/kb.txt).
 
 ## Run
 
@@ -65,7 +65,7 @@ I use the unchanged questions and midpoint `(max_out + min_in) / 2`; overlapping
 
 ## Plain top-3 evaluation
 
-I use the same 9 labelled questions in evaluation and demo, deduplicate retrieved parents, and average per-query precision and recall. [Full arithmetic and parent sets](outputs/evaluation.txt).
+I use the same 9 labelled questions in evaluation and demo, deduplicate retrieved parents, and average per-query precision and recall. [Full arithmetic and parent sets](outputs/evaluation.txt) · [Comparison and demo check](outputs/readme_check.txt).
 
 fixed_overlap:
 
@@ -97,7 +97,9 @@ sentence:
 | q09 | 11_second_opinion, 07_telemedicine | 11_second_opinion, 07_telemedicine | 2 relevant of 2 retrieved = 1.000000 | 2 retrieved of 2 relevant = 1.000000 |
 | Macro average | | | 0.759259 | 1.000000 |
 
-I recommend sentence chunks: macro precision is 0.759259 versus 0.703704 for fixed chunks, with recall 1.000000 for both. I set the single `STRATEGY` constant in `rag.py` to `sentence`; evaluation never writes it. Both macro results and every query’s retrieved parent set and arithmetic match the old plain baseline at its reported precision. The same KB, model, chunk boundaries, questions and labels explain the match; nothing was tuned.
+I tentatively choose sentence chunks: macro precision is 0.759259 versus 0.703704 for fixed chunks, with recall 1.000000 for both. Sentence chunks have higher precision on q02 and q04, fixed chunks on q07 and q08, and the other five tie. Sentence has the higher average only because its two wins are larger; 9 queries is a small sample, so this choice is only weakly supported. I set the single `STRATEGY` constant in `rag.py` to `sentence`; evaluation never writes it.
+
+The demo answered 9 questions with retrieved text and fell back on “Give me a recipe for chocolate brownies.” at similarity 0.054437876. [Demo output](outputs/demo.txt).
 
 ## Limits
 

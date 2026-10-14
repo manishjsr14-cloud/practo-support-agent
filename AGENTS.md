@@ -120,7 +120,7 @@ Similarity alone cannot prove that a passage answers a question; any future grou
 
 | Part | Status | Notes |
 |---|---|---|
-| Part 1 | complete; simple rewrite | Plain top-3 baseline reproduced; all 11 tests and the full pipeline passed. Supplied inputs unchanged. Sunday-hours and Mumbai unsupported acceptances retained. Current evidence is in outputs/. |
+| Part 1 | complete; simple rewrite | Plain top-3 baseline reproduced; all 11 tests and the full pipeline passed. Supplied inputs unchanged. Sunday-hours and Mumbai unsupported acceptances retained. Current evidence is in outputs/. README now qualifies the strategy choice and reports the measured demo. |
 | Part 2 | not started | Out of scope. |
 | Part 3 | not started | Out of scope. |
 | Part 4 | not started | Out of scope. |
