@@ -1,0 +1,3 @@
+# Prescription-Refill Request Policy (fictional clinic)
+
+To request a prescription refill, refer to a completed clinic consultation and an existing prescription issued by the clinic. The prescribing clinician reviews a complete request within two business days and may require a new consultation before deciding whether to issue a refill. Submitting a request does not guarantee a refill or renewal of the same medicine, quantity, or prescription duration. Support can explain the request process but does not prescribe, approve refills, change doses, or recommend replacement medicines. A reported medical emergency must receive the direction in the emergency protocol rather than a promise of routine refill processing.

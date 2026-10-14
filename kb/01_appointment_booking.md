@@ -1,0 +1,3 @@
+# Appointment-Booking Policy (fictional clinic)
+
+To request an appointment, provide your patient reference, the specialty, a preferred clinician or a request for any available clinician, and your preferred date and time. Routine appointments can be requested up to 30 calendar days in advance, subject to clinician and slot availability. Your appointment is confirmed only when clinic staff issue an appointment record ID and mark it Scheduled; requesting a slot does not reserve it. Staff quote the standard consultation fee before confirmation and record any appointment-specific adjustment in your booking. The support service can explain these steps and check existing appointment records, while clinic staff handle bookings, slot reservations, and payments.

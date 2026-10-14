@@ -1,0 +1,3 @@
+# Laboratory-Test Turnaround Policy (fictional clinic)
+
+Indicative laboratory turnaround times are 24 hours for routine blood tests, 72 hours for culture tests, and five business days for specialized tests. These estimates start when the laboratory receives both a usable sample and a complete test request, rather than when you book an appointment. A repeat sample, an incomplete request, or referral to an outside laboratory may extend the wait, and staff provide a revised estimate when they identify a delay. If the quoted time has passed, ask clinic staff to check your test reference and release status. Support can explain these timings, but laboratory results are not available in appointment records, and support does not interpret results or guarantee a release time.
