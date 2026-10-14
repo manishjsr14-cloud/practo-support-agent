@@ -116,7 +116,8 @@ The Sunday-hours sentence score, 0.524604023, exceeds the weakest legitimate cal
 
 All 11 tests and the full pipeline passed, as did `pip check`. [Tests](outputs/tests.txt) · [Dependencies](outputs/setup.txt). Bash execution and downloading into an empty model cache were not verified; the Windows run used the cached checkpoint.
 
-TODO (in my own words): What I learned: A similarity score measures how close a question sounds to a policy
+## What I learned: 
+A similarity score measures how close a question sounds to a policy
 text; it doesn't show that the text answers the question. The clearest example is the
 Sunday-opening-hours question, which my policies can't answer but which scored 0.525,
 higher than my weakest legitimate question (the insurance query at 0.486). So no single
