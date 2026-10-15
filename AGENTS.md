@@ -3,23 +3,26 @@
 ## Simplicity rules
 
 - Each file under about 150 lines. Plain functions, no classes unless needed.
+- Exception: mock_llm.py may be up to about 200 lines. Part 2 adds flat files for rules, tools, crew, memory, schema and guardrails.
 - A short plain-English comment above every function.
 - No fingerprints, no stale-index detection, no deployment.json, no custom reranker, no retrieval-policy versioning, no socket blocking. The index step deletes and rebuilds both collections each run.
 - Retrieval is PLAIN top-3 vector search from one collection. Nothing else.
-- Offline, deterministic, MOCK_LLM, zero API keys. Set HF_HUB_OFFLINE=1, ANONYMIZED_TELEMETRY=False and CREWAI_DISABLE_TELEMETRY=true in code.
+- Offline, deterministic, MOCK_LLM, zero API keys. Set HF_HUB_OFFLINE=1, ANONYMIZED_TELEMETRY=False, CREWAI_DISABLE_TELEMETRY=true, OTEL_SDK_DISABLED=true and CREWAI_TRACING_ENABLED=false in code before importing frameworks. Set CREWAI_STORAGE_DIR to the absolute path of the repository's `.crewai/` folder.
 - Keep: all-MiniLM-L6-v2; fixed chunks of 320 characters with 80 overlap; sentence chunks of 2 sentences; cosine similarity = 1 - distance; collection.upsert(); the parent document id in every chunk's metadata.
-- Add .gitignore for .venv, __pycache__, and the Chroma folder.
+- Add .gitignore for .venv, __pycache__, the Chroma folder and `.crewai/` so CrewAI's storage files are not committed.
+- Hide model-loading progress bars so new output files stay clean.
 
 ## Scope and working rules
 
-- Work only on Part 1, Tasks 1–5, in this new repository. Do not implement Parts 2–4.
-- Keep supplied `dataset.py`, `data/appointments.json`, `kb/` and `requirements.txt` byte-identical. Their inherited formatting and length are exceptions to the new-file simplicity rules.
+- Work only on Part 2, Tasks 6–10. Do not implement Parts 3–4.
+- Keep supplied `dataset.py`, `data/appointments.json` and `kb/` byte-identical. Their inherited formatting and length are exceptions to the new-file simplicity rules. `requirements.txt` was updated in the dependency migration; the original is kept as `requirements-part1.txt`.
 - Never rewrite the handwritten KB, hand-edit generated records, change dataset choices or silently relax dependency pins.
 - Show planned files before coding. Use readable code and ordinary comments so I can explain it.
 - Never invent measurements. Run the code and save real text output in `outputs/`; quote only numbers appearing there.
-- Keep only the new repository's current outputs. Do not import old transcripts, failed-run history or migration evidence.
+- Keep only current outputs. Do not import old transcripts or failed-run history. The one exception is `outputs/unified_env/`, which records the dependency migration.
 - No API calls, paid accounts, real patient data or binary deliverables. Dependencies and the embedding model must already be available for offline runtime.
-- Commit in small steps with clear messages; update tests with each task. Delete `reference/` in the last commit.
+- Commit in small steps with clear messages; update tests with each task.
+- Guardrail test sets live in guardrail_queries.py, committed before the guardrail is built, and are never edited afterwards.
 - Report failed checks, skipped work and deviations plainly. Do not tune queries, labels, chunk sizes or retrieval to improve measured results.
 
 ## Fixed dataset design
@@ -49,7 +52,7 @@
 - Each chunk must carry its parent document id in metadata; embed both strategies with the same model.
 - Retrieval returns plain cosine top-3 chunks from the requested collection, without parent expansion, reranking or diversity selection.
 - Its answer function accepts a named strategy and calibrated threshold; return verbatim retrieved context under `MOCK_LLM` or the fallback.
-- Use the original top-1 similarity as the only Part 1 answer/fallback signal. Do not add keyword support checks or hide its limitations.
+- In Part 1's `rag.py`, the original top-1 similarity is the only answer/fallback signal. Do not change it. The Part 2 groundedness guardrail lives in `guardrails.py` as a separate second stage, and must never change `rag.py`'s retrieval, threshold or calibration.
 - Shared `queries.py`: hold the unchanged demo/evaluation queries and labels, calibration queries and deliberate out-of-scope examples.
 - `evaluate.py`: calibrate both collections, deduplicate retrieved parent ids, print precision/recall arithmetic per query for both collections and print macro averages.
 - Keep the selection rule: higher macro recall, then higher macro precision, then sentence chunks on an exact tie. Do not persist a deployment file.
@@ -106,21 +109,21 @@ Measure both collections without changing calibration:
 
 Print each top-1 similarity, the recommended strategy's threshold and answer/fallback behavior.
 Report every unsupported acceptance honestly, especially the Sunday-hours case. Do not raise the threshold or add a keyword hack to conceal it.
-Similarity alone cannot prove that a passage answers a question; any future groundedness guardrail belongs to an explicitly requested later Part.
+The Part 2 guardrail addresses this in guardrails.py.
 
 ## README and completion
 
-- Write in first person, under about `120` lines. State that this is the Practo (Healthcare) Part 1 project; do not claim later Parts are completed.
+- Write in first person. Keep each Part's README section short (the Part 2 section under about 60 lines). State the Practo (Healthcare) track at the top. Do not claim a Part is completed until it is. Never write my "what I learned" sections.
 - Explain the dataset choices, measured calibration, plain-retrieval evaluation, recommendation and limitations using only current `outputs/` evidence.
 - Include PowerShell and Bash run commands, offline flags, zero-key `MOCK_LLM` behavior and the exact fee justification.
-- Include `TODO (in my own words): what I learned` for me to complete.
-- Run the tests and the complete offline pipeline before marking Part 1 complete; record their actual output and any failures.
+- Do not touch my existing "What I learned" section. For Part 2, add a heading "## What I learned in Part 2" with the single line "[I will write this myself]".
+- Run the tests and the relevant offline pipeline before marking any Part complete; record the actual output and failures.
 
 ## Session log
 
 | Part | Status | Notes |
 |---|---|---|
 | Part 1 | complete; simple rewrite | Plain top-3 baseline reproduced; all 11 tests and the full pipeline passed. Supplied inputs unchanged. Sunday-hours and Mumbai unsupported acceptances retained. Current evidence is in outputs/. README now qualifies the strategy choice and reports the measured demo. |
-| Part 2 | not started | Out of scope. |
+| Part 2 | dependencies unified; no Part 2 code yet | requirements.txt updated and merged, original kept as requirements-part1.txt. Retrieval identical in both environments, similarities within 4e-7. Results in outputs/ (Part 1 pins) and outputs/unified_env/. |
 | Part 3 | not started | Out of scope. |
 | Part 4 | not started | Out of scope. |
