@@ -1,0 +1,27 @@
+Cosine similarity = 1 - cosine distance
+
+Calibration: fixed_overlap; top-k chunks: 3
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|██████████| 103/103 [00:00<00:00, 1590.35it/s]
+in_scope | How can I reserve a clinic appointment? | top1=0.734328926
+in_scope | How much does a Cardiology consultation cost? | top1=0.674874008
+in_scope | What documents are needed for an insurance claim? | top1=0.440953553
+in_scope | Who is allowed to authorize a prescription refill? | top1=0.605015934
+out_of_scope | How do I repair a punctured bicycle tyre? | top1=0.145102620
+out_of_scope | What is the orbital period of Neptune? | top1=0.143519402
+out_of_scope | Write a sorting algorithm in Rust. | top1=0.075274765
+max_out=0.145102620; min_in=0.440953553
+Threshold = (0.145102620 + 0.440953553) / 2 = 0.293028086
+
+Calibration: sentence; top-k chunks: 3
+in_scope | How can I reserve a clinic appointment? | top1=0.746177077
+in_scope | How much does a Cardiology consultation cost? | top1=0.708590388
+in_scope | What documents are needed for an insurance claim? | top1=0.486387372
+in_scope | Who is allowed to authorize a prescription refill? | top1=0.600208342
+out_of_scope | How do I repair a punctured bicycle tyre? | top1=0.152278662
+out_of_scope | What is the orbital period of Neptune? | top1=0.147324920
+out_of_scope | Write a sorting algorithm in Rust. | top1=0.082972288
+max_out=0.152278662; min_in=0.486387372
+Threshold = (0.152278662 + 0.486387372) / 2 = 0.319333017
+Saved calibration: outputs\calibration.json

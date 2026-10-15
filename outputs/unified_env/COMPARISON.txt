@@ -1,0 +1,27 @@
+Part 1 pins versus the unified environment
+
+| Package | Part 1 pins | Unified environment |
+|---|---|---|
+| chromadb | 1.1.1 | 1.5.9 |
+| pydantic | 2.14.1 | 2.12.5 |
+| protobuf | 7.36.2 | 5.29.6 |
+| regex | 2026.9.29 | 2026.1.15 |
+| torch | 2.8.0 | 2.14.1 |
+| numpy | 2.2.6 | 2.5.4 |
+| transformers | 4.56.2 | 5.19.0 |
+| huggingface-hub | 0.34.4 | 1.33.0 |
+| tokenizers | 0.22.2 | 0.23.3 |
+| sentence-transformers | 5.1.1 | 6.1.0 |
+
+Maximum absolute chunk-embedding difference: 1.043081283569336e-07.
+Maximum absolute similarity difference: 3.5762786865234375e-07; within 4e-7: True.
+Embeddings pass np.allclose with rtol=1e-6 and atol=1e-7.
+Fixed stored/fresh embedding maxima: 9.406358003616333e-08 / 9.359791874885559e-08.
+Sentence stored/fresh embedding maxima: 1.043081283569336e-07 / 1.043081283569336e-07.
+Fixed/sentence similarity maxima: 2.980232238769531e-07 / 3.5762786865234375e-07.
+All 21 queries have identical top-3 chunk ids, parents and texts in both strategies.
+No retrieved answer or ANSWER/FALLBACK decision changed.
+Fixed thresholds as printed: Part 1 0.293028146; unified 0.293028086.
+Sentence thresholds as printed: Part 1 0.319332987; unified 0.319333017.
+All 11 tests pass with Part 1 pins; all 11 pass in the unified environment.
+Progress/blank lines, elapsed test time and q05's rounding-boundary flag were accepted as benign.

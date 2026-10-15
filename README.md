@@ -132,3 +132,20 @@ against 0.704 for fixed chunks, but each strategy won two of the nine queries (s
 on q02 and q04, fixed on q07 and q08), and the gap comes from the size of the wins, so
 nine queries is a small sample. In Part 2 I will add a check that the question's key
 terms actually appear in the retrieved text.
+
+## Results in two environments
+
+I produced the main tables above from `outputs/` with `requirements-part1.txt`; my unified `requirements.txt` for Parts 2–4 gives identical retrieval and decisions with similarities within `4e-7`, and I saved its results in [`outputs/unified_env/`](outputs/unified_env/).
+
+| Item | Part 1 pins | Unified environment |
+|---|---:|---:|
+| Fixed threshold | 0.293028146 | 0.293028086 |
+| Sentence threshold | 0.319332987 | 0.319333017 |
+| Fixed macro precision | 0.703704 | 0.703704 |
+| Sentence macro precision | 0.759259 | 0.759259 |
+| Macro recall (both) | 1.000000 | 1.000000 |
+| Sunday-hours sentence score | 0.524604023 | 0.524603963 |
+| Weakest in-scope (insurance) sentence score | 0.486387312 | 0.486387372 |
+| Tests passed | 11 | 11 |
+
+I treat differences in the seventh decimal place and beyond as floating-point noise; no retrieved chunk, answer or ANSWER/FALLBACK decision changed.
