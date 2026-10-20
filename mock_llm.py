@@ -25,8 +25,8 @@ KB08_NOTE = ("Note: the escalation score is an administrative follow-up flag, "
 REUSE_NOTICE = "I tried reusing the same input"
 # One ReAct step: the action name, its JSON input, then the observation CrewAI appended.
 STEP = re.compile(r"Action:[ \t]*(.*?)\nAction Input:[ \t]*(.*?)\nObservation:[ \t]*(.*)", re.S)
-# The appointment-status part of a question, e.g. "What is the status of APT-007".
-STATUS_CLAUSE = re.compile(r"what is the status of APT-[0-9]{3}", re.I)
+# An appointment record id such as APT-007.
+RECORD_ID = re.compile(r"APT-[0-9]{3}")
 
 
 # Wrap text in CrewAI's final-answer format.
@@ -78,7 +78,7 @@ def tool_arguments(tool, question):
     fields = tool.args_schema.model_fields
     if "record_id" in fields:
         # An appointment tool needs an id such as APT-007 written in the question.
-        found = re.findall(r"APT-[0-9]{3}", question)
+        found = RECORD_ID.findall(question)
         return ({"record_id": found[0]}, None) if found else (None, NO_RECORD_ID)
     if "query" in fields:
         # Only the policy clause goes to retrieval: the record part belongs to the Lookup
@@ -88,15 +88,20 @@ def tool_arguments(tool, question):
     return None, UNSUPPORTED_TOOL
 
 
-# Remove the "status of APT-xxx" clause and the "and" that joined it to the rest.
-# Takes: the question. Returns: the remaining policy clause ("" or punctuation if none).
-# Example: "What is the status of APT-007 and can I reschedule it?" -> "can I reschedule it?"
-# A question without a status clause is returned unchanged.
+# Keep only the parts of the question that do not mention an appointment id.
+# Takes: the question. Returns: the policy part ("" or punctuation if none remains).
+# Rule: split on the whole word "and" (any case), drop every part containing an id such
+#   as APT-007, and rejoin the rest with " and ".
+# Examples: "What is the status of APT-007 and can I reschedule it?" -> "can I reschedule it?"
+#   "Is APT-007 cancelled and can I reschedule?" -> "can I reschedule?"
 def policy_clause(question):
-    clause = STATUS_CLAUSE.sub("", question).strip()
-    # Drop a leading "and" (status clause first) or a trailing "and" (status clause last).
-    clause = re.sub(r"^\W*and\b|,?\s*\band\W*$", "", clause, flags=re.I)
-    return clause.strip(" ,;")
+    parts = re.split(r"\band\b", question, flags=re.I)
+    kept = [part.strip() for part in parts if not RECORD_ID.search(part)]
+    # Nothing dropped (no id): return the question unchanged, so an "and" inside a policy
+    # question ("cancellation and rescheduling") never alters it.
+    if len(kept) == len(parts):
+        return question
+    return " and ".join(part for part in kept if part).strip(" ,;")
 
 
 # Join the earlier agents' outputs under labels, in task order, adding no new facts.

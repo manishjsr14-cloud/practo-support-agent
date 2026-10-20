@@ -191,9 +191,9 @@ The Retrieval Agent now sends only the policy clause; the appointment id belongs
 | Before | What is the status of APT-007 and can I reschedule it? | 0.327158928 | 02_cancellation_rescheduling, 06_lab_turnaround, 05_prescription_refills |
 | After | can I reschedule it? | 0.501042783 | 02_cancellation_rescheduling (all three chunks) |
 
-KB02 covers rescheduling in general (24-hour window, an available slot, the original fee kept, staff confirmation) but does not say whether an already-Cancelled appointment such as APT-007 can be rescheduled. I changed no threshold, calibration or KB text.
+KB02 covers rescheduling in general (24-hour window, an available slot, the original fee kept, staff confirmation) but does not say whether an already-Cancelled appointment such as APT-007 can be rescheduled. I changed no threshold, calibration or KB text. The split is per 'and'-separated part, so a part that holds both an id and a policy question, such as 'Can I reschedule APT-007?', is dropped whole and no policy question reaches retrieval; and in 'can I reschedule it?' the word 'it' has no referent.
 
-Task 7 runs in a fresh `.venv` built from `requirements.txt`; I kept the Part 1 environment as the ignored `.venv-part1`. PowerShell: `.\.venv\Scripts\python.exe run_task7.py`. Bash: `.venv/bin/python run_task7.py` (Bash not verified). All 30 tests pass. [Crew output](outputs/part2_crew.txt) · [Test results](outputs/part2_tests.txt).
+Task 7 runs in a fresh `.venv` built from `requirements.txt`; I kept the Part 1 environment as the ignored `.venv-part1`. PowerShell: `.\.venv\Scripts\python.exe run_task7.py`. Bash: `.venv/bin/python run_task7.py` (Bash not verified). All 32 tests pass. [Crew output](outputs/part2_crew.txt) · [Test results](outputs/part2_tests.txt).
 
 ## What I learned in Part 2
 

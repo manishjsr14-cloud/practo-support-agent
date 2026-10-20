@@ -9,7 +9,6 @@ import re
 
 import numpy as np
 
-import rag
 from dataset import APPOINTMENTS
 from rules import ESCALATION_PERCENTILE, FOLLOW_UP_WEIGHT, RECENCY_DAYS, RECENCY_WEIGHT
 
@@ -79,6 +78,8 @@ def recommend_escalation(score: float) -> bool:
 # Why: it reuses rag.answer() unchanged, with the sentence collection and the threshold
 #   saved in outputs/calibration.json, so the crew sees exactly what Part 1 retrieves.
 def rag_lookup(query: str) -> dict:
+    # Imported here so that Task 6 code importing tools.py never loads the retrieval code.
+    import rag
     result = rag.answer(query, strategy="sentence")
     return {"answer": result["answer"], "source_ids": result["source_ids"],
             "similarity": result["similarity"]}

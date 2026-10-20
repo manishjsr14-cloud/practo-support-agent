@@ -9,13 +9,15 @@ import settings  # noqa: F401  (must come before any crewai import)
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 from types import SimpleNamespace
 import unittest
 
 from crewai.tools import tool
 
 import crew
-from mock_llm import MockLLM, find_tool_result
+from mock_llm import NO_POLICY_QUESTION, MockLLM, find_tool_result, policy_clause, tool_arguments
 from tools import rag_lookup
 
 QUERIES = {
@@ -120,6 +122,27 @@ class Task7Tests(unittest.TestCase):
         agent, task = fake([misleading_lookup_tool], question)
         reply = MockLLM(model="mock-llm").call([], from_task=task, from_agent=agent)
         self.assertEqual(json.loads(reply.split("Action Input:")[1]), {"record_id": "APT-007"})
+
+    # The policy clause drops every "and"-separated part that names an appointment id, and
+    # leaves a question with no id unchanged even when it contains "and".
+    def test_policy_clause_drops_parts_with_record_ids(self):
+        cases = {"What is the status of APT-007 and can I reschedule it?": "can I reschedule it?",
+                 "Is APT-007 cancelled and can I reschedule?": "can I reschedule?",
+                 "What is the cancellation and rescheduling window?":
+                     "What is the cancellation and rescheduling window?"}
+        for question, expected in cases.items():
+            with self.subTest(question=question):
+                self.assertEqual(policy_clause(question), expected)
+        arguments, reason = tool_arguments(crew.rag_lookup_tool, "What is the status of APT-007?")
+        self.assertIsNone(arguments)
+        self.assertEqual(reason, NO_POLICY_QUESTION)
+
+    # Importing tools.py (as Task 6 does) must not load the retrieval code in rag.py.
+    def test_importing_tools_does_not_import_rag(self):
+        root = Path(__file__).resolve().parent.parent
+        check = subprocess.run([sys.executable, "-c", "import sys, tools; print('rag' in sys.modules)"],
+                               cwd=root, capture_output=True, text=True, check=True)
+        self.assertEqual(check.stdout.strip(), "False")
 
     # A missing agent or task (CrewAI's forced final call) gives a plain final answer.
     def test_missing_agent_gives_plain_final_answer(self):
