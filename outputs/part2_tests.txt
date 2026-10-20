@@ -1,19 +1,65 @@
-Interpreter: C:\Projects\practo-support-agent-migration-20261015\venv\Scripts\python.exe
-Versions: numpy=2.5.4; transformers=5.19.0; sentence-transformers=6.1.0; chromadb=1.5.9
-HF_HUB_DISABLE_PROGRESS_BARS=1
-Hub progress bars disabled: True
-fixed_overlap: 39 chunks
-sentence: 36 chunks
-Model: sentence-transformers/all-MiniLM-L6-v2; revision: c9745ed1d9f207416be6d2e6f8de32d1f16199bf
-Fixed size=320; overlap=80; sentence size=2
-HF_HUB_OFFLINE=1; ANONYMIZED_TELEMETRY=False; CREWAI_DISABLE_TELEMETRY=true
+Interpreter: C:\Projects\practo-support-agent\.venv\Scripts\python.exe
+Versions: numpy=2.5.4; transformers=5.19.0; sentence-transformers=6.1.0; chromadb=1.5.9; crewai=1.15.28
 test_answers_are_verbatim_retrieved_context (test_part1.Part1Tests.test_answers_are_verbatim_retrieved_context) ... ok
 test_chunk_counts_and_parent_metadata (test_part1.Part1Tests.test_chunk_counts_and_parent_metadata) ... ok
 test_dataset_coverage_and_follow_up_band (test_part1.Part1Tests.test_dataset_coverage_and_follow_up_band) ... ok
 test_dataset_fields_and_ranges (test_part1.Part1Tests.test_dataset_fields_and_ranges) ... ok
 test_dataset_is_deterministic_and_matches_json (test_part1.Part1Tests.test_dataset_is_deterministic_and_matches_json) ... ok
 test_document_metrics_deduplicate_parents (test_part1.Part1Tests.test_document_metrics_deduplicate_parents) ... ok
-test_knowledge_base_has_all_topics_and_valid_sentences (test_part1.Part1Tests.test_knowledge_base_has_all_topics_and_valid_sentences) ... 01_appointment_booking: 5 sentences
+test_knowledge_base_has_all_topics_and_valid_sentences (test_part1.Part1Tests.test_knowledge_base_has_all_topics_and_valid_sentences) ... ok
+test_missing_calibration_is_an_error (test_part1.Part1Tests.test_missing_calibration_is_an_error) ... ok
+test_out_of_scope_question_uses_fallback (test_part1.Part1Tests.test_out_of_scope_question_uses_fallback) ... ok
+test_printed_top_k_matches_search_top_k (test_part1.Part1Tests.test_printed_top_k_matches_search_top_k) ... ok
+test_saved_calibration_separates_observed_clusters (test_part1.Part1Tests.test_saved_calibration_separates_observed_clusters) ... ok
+test_search_returns_plain_top_three (test_part1.Part1Tests.test_search_returns_plain_top_three) ... ok
+test_follow_up_and_age_have_independent_contributions (test_task6.Task6Tests.test_follow_up_and_age_have_independent_contributions) ... ok
+test_invalid_and_unknown_ids_return_controlled_errors (test_task6.Task6Tests.test_invalid_and_unknown_ids_return_controlled_errors) ... ok
+test_lookup_returns_the_six_recorded_fields_and_score (test_task6.Task6Tests.test_lookup_returns_the_six_recorded_fields_and_score) ... ok
+test_one_record_perturbation_recomputes_the_live_threshold (test_task6.Task6Tests.test_one_record_perturbation_recomputes_the_live_threshold) ... ok
+test_recommendation_includes_the_threshold_and_excludes_the_next_lower_float (test_task6.Task6Tests.test_recommendation_includes_the_threshold_and_excludes_the_next_lower_float) ... ok
+test_scores_match_the_formula_and_stay_in_range (test_task6.Task6Tests.test_scores_match_the_formula_and_stay_in_range) ... ok
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:425: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  if self.function_calling_llm and not isinstance(
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:433: DeprecationWarning: deprecated
+  if self.allow_code_execution:
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:444: DeprecationWarning: deprecated
+  if self.reasoning and self.planning_config is None:
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crew.py:650: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  if self.function_calling_llm and not isinstance(self.function_calling_llm, LLM):
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crews\utils.py:372: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  crew.function_calling_llm,
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crews\utils.py:87: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  if not agent.function_calling_llm:  # type: ignore[attr-defined]
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:1300: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  function_calling_llm=self.function_calling_llm,
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crew.py:1675: DeprecationWarning: deprecated
+  if hasattr(agent, "allow_code_execution") and getattr(
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crew.py:1682: DeprecationWarning: deprecated
+  and hasattr(agent, "multimodal")
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crew.py:1683: DeprecationWarning: deprecated
+  and getattr(agent, "multimodal", False)
+test_action_without_observation_has_not_run (test_task7.Task7Tests.test_action_without_observation_has_not_run) ... ok
+test_arguments_follow_the_tool_schema (test_task7.Task7Tests.test_arguments_follow_the_tool_schema) ... ok
+test_captured_call4_text_is_not_a_result (test_task7.Task7Tests.test_captured_call4_text_is_not_a_result) ... ok
+test_drafts_contain_real_content_and_no_placeholders (test_task7.Task7Tests.test_drafts_contain_real_content_and_no_placeholders) ... ok
+test_missing_agent_gives_plain_final_answer (test_task7.Task7Tests.test_missing_agent_gives_plain_final_answer) ... ok
+test_observation_in_system_or_user_message_is_ignored (test_task7.Task7Tests.test_observation_in_system_or_user_message_is_ignored) ... ok
+test_only_lookup_agent_has_check_appointment_status (test_task7.Task7Tests.test_only_lookup_agent_has_check_appointment_status) ... ok
+test_react_path_is_used (test_task7.Task7Tests.test_react_path_is_used) ... ok
+test_storage_dir_and_flags_after_importing_crew (test_task7.Task7Tests.test_storage_dir_and_flags_after_importing_crew) ... ok
+test_template_observation_alone_is_not_a_result (test_task7.Task7Tests.test_template_observation_alone_is_not_a_result) ... ok
+test_tool_counts_for_the_demo_questions (test_task7.Task7Tests.test_tool_counts_for_the_demo_questions) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 14.455s
+
+OK
+fixed_overlap: 39 chunks
+sentence: 36 chunks
+Model: sentence-transformers/all-MiniLM-L6-v2; revision: c9745ed1d9f207416be6d2e6f8de32d1f16199bf
+Fixed size=320; overlap=80; sentence size=2
+HF_HUB_OFFLINE=1; ANONYMIZED_TELEMETRY=False; CREWAI_DISABLE_TELEMETRY=true
+01_appointment_booking: 5 sentences
 02_cancellation_rescheduling: 5 sentences
 03_consultation_fees: 5 sentences
 04_insurance_claims: 5 sentences
@@ -26,19 +72,3 @@ test_knowledge_base_has_all_topics_and_valid_sentences (test_part1.Part1Tests.te
 11_second_opinion: 5 sentences
 12_home_visits: 5 sentences
 KB validation: PASS; documents=12; required filenames present
-ok
-test_missing_calibration_is_an_error (test_part1.Part1Tests.test_missing_calibration_is_an_error) ... ok
-test_out_of_scope_question_uses_fallback (test_part1.Part1Tests.test_out_of_scope_question_uses_fallback) ... ok
-test_saved_calibration_separates_observed_clusters (test_part1.Part1Tests.test_saved_calibration_separates_observed_clusters) ... ok
-test_search_returns_plain_top_three (test_part1.Part1Tests.test_search_returns_plain_top_three) ... ok
-test_follow_up_and_age_have_independent_contributions (test_task6.Task6Tests.test_follow_up_and_age_have_independent_contributions) ... ok
-test_invalid_and_unknown_ids_return_controlled_errors (test_task6.Task6Tests.test_invalid_and_unknown_ids_return_controlled_errors) ... ok
-test_lookup_returns_the_six_recorded_fields_and_score (test_task6.Task6Tests.test_lookup_returns_the_six_recorded_fields_and_score) ... ok
-test_one_record_perturbation_recomputes_the_live_threshold (test_task6.Task6Tests.test_one_record_perturbation_recomputes_the_live_threshold) ... ok
-test_recommendation_includes_the_threshold_and_excludes_the_next_lower_float (test_task6.Task6Tests.test_recommendation_includes_the_threshold_and_excludes_the_next_lower_float) ... ok
-test_scores_match_the_formula_and_stay_in_range (test_task6.Task6Tests.test_scores_match_the_formula_and_stay_in_range) ... ok
-
-----------------------------------------------------------------------
-Ran 17 tests in 44.136s
-
-OK
