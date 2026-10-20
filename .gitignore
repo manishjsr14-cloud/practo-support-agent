@@ -3,3 +3,4 @@ __pycache__/
 *.py[cod]
 chroma/
 .venv-part1/
+.crewai/
