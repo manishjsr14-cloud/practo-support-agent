@@ -1,0 +1,90 @@
+Task 7: three-agent sequential crew with MockLLM (offline, zero API keys)
+Flags set by settings.py before crewai was imported:
+  HF_HUB_OFFLINE=1
+  TRANSFORMERS_OFFLINE=1
+  ANONYMIZED_TELEMETRY=False
+  CREWAI_DISABLE_TELEMETRY=true
+  OTEL_SDK_DISABLED=true
+  CREWAI_TRACING_ENABLED=false
+  HF_HUB_DISABLE_PROGRESS_BARS=1
+  CREWAI_STORAGE_DIR=C:\Projects\practo-support-agent\.crewai
+CrewAI storage path: C:\Projects\practo-support-agent\.crewai
+
+========================================================================
+Question: What is the cancellation and rescheduling window?
+Tool calls: rag_lookup=1; check_appointment_status=0
+LLM calls: 4; all with agent and task: True; tools argument always None (ReAct path): True
+--- Retrieval Agent output
+You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+
+Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.
+
+The support service explains these rules, but clinic staff must make booking changes and approve refunds.
+Sources: 02_cancellation_rescheduling, 02_cancellation_rescheduling, 02_cancellation_rescheduling
+Top-1 similarity: 0.548343599
+--- Lookup Agent output
+No appointment record id was given in the question.
+--- Response Composer output (final draft)
+Retrieval result:
+You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+
+Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.
+
+The support service explains these rules, but clinic staff must make booking changes and approve refunds.
+Sources: 02_cancellation_rescheduling, 02_cancellation_rescheduling, 02_cancellation_rescheduling
+Top-1 similarity: 0.548343599
+
+Lookup result:
+No appointment record id was given in the question.
+
+========================================================================
+Question: What is the status of APT-007?
+Tool calls: rag_lookup=0; check_appointment_status=1
+LLM calls: 4; all with agent and task: True; tools argument always None (ReAct path): True
+--- Retrieval Agent output
+No policy question was asked.
+--- Lookup Agent output
+record_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333
+--- Response Composer output (final draft)
+Retrieval result:
+No policy question was asked.
+
+Lookup result:
+record_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333
+
+Note: the escalation score is an administrative follow-up flag, not a medical assessment (KB08).
+
+========================================================================
+Question: What is the status of APT-007 and can I reschedule it?
+Tool calls: rag_lookup=1; check_appointment_status=1
+LLM calls: 5; all with agent and task: True; tools argument always None (ReAct path): True
+--- Retrieval Agent output
+You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+
+Support can explain these timings, but laboratory results are not available in appointment records, and support does not interpret results or guarantee a release time.
+
+Submitting a request does not guarantee a refill or renewal of the same medicine, quantity, or prescription duration. Support can explain the request process but does not prescribe, approve refills, change doses, or recommend replacement medicines.
+Sources: 02_cancellation_rescheduling, 06_lab_turnaround, 05_prescription_refills
+Top-1 similarity: 0.327158928
+--- Lookup Agent output
+record_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333
+--- Response Composer output (final draft)
+Retrieval result:
+You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+
+Support can explain these timings, but laboratory results are not available in appointment records, and support does not interpret results or guarantee a release time.
+
+Submitting a request does not guarantee a refill or renewal of the same medicine, quantity, or prescription duration. Support can explain the request process but does not prescribe, approve refills, change doses, or recommend replacement medicines.
+Sources: 02_cancellation_rescheduling, 06_lab_turnaround, 05_prescription_refills
+Top-1 similarity: 0.327158928
+
+Lookup result:
+record_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333
+
+Note: the escalation score is an administrative follow-up flag, not a medical assessment (KB08).
+
+| Question | rag_lookup | check_appointment_status |
+|---|---:|---:|
+| What is the cancellation and rescheduling window? | 1 | 0 |
+| What is the status of APT-007? | 0 | 1 |
+| What is the status of APT-007 and can I reschedule it? | 1 | 1 |
