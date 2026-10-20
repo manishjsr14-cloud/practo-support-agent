@@ -1,4 +1,4 @@
-# Practo (Healthcare) — Part 1 completed
+# Practo (Healthcare) — Part 1 complete, Part 2 in progress
 
 I built a local policy retriever with deterministic `MOCK_LLM` answers and zero API keys. My dataset has 50 fabricated appointments, including 13 follow-ups (26.00%), and my handwritten KB has 12 policies.
 
@@ -40,7 +40,7 @@ python3.12 -m venv .venv
 .venv/bin/python run_part1.py
 ```
 
-The runner overwrites current `outputs/` reports: dataset, KB validation, index, sample retrieval, calibration, evaluation, stress, demo and tests. I use CPU MiniLM with local files only; code sets `HF_HUB_OFFLINE=1`, `ANONYMIZED_TELEMETRY=False` and `CREWAI_DISABLE_TELEMETRY=true` before framework imports.
+The runner overwrites current `outputs/` reports: dataset, KB validation, index, sample retrieval, calibration, evaluation, stress, demo and tests. I use CPU MiniLM with local files only; code sets `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, `ANONYMIZED_TELEMETRY=False`, `CREWAI_DISABLE_TELEMETRY=true`, `OTEL_SDK_DISABLED=true` and `HF_HUB_DISABLE_PROGRESS_BARS=1` before framework imports. [`outputs/index.txt`](outputs/index.txt) prints a fixed subset of three of them.
 
 Both collections are deleted/rebuilt using `upsert()` with parent IDs. Fixed chunks use 320 characters with 80 overlap (39 chunks); sentence chunks use 2 sentences (36 chunks). Search returns the closest 3 chunks directly; similarity = 1 − cosine distance. [Index](outputs/index.txt) · [Sample chunks from both collections](outputs/sample_retrieval.txt).
 
@@ -116,7 +116,7 @@ The Sunday-hours sentence score, 0.524604023, exceeds the weakest legitimate cal
 
 All 11 tests and the full pipeline passed, as did `pip check`. [Tests](outputs/tests.txt) · [Dependencies](outputs/setup.txt). Bash execution and downloading into an empty model cache were not verified; the Windows run used the cached checkpoint.
 
-## What I learned: 
+## What I learned in Part 1
 A similarity score measures how close a question sounds to a policy
 text; it doesn't show that the text answers the question. The clearest example is the
 Sunday-opening-hours question, which my policies can't answer but which scored 0.525,
