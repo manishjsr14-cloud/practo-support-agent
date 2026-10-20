@@ -125,6 +125,6 @@ The Part 2 guardrail addresses this in guardrails.py.
 | Part | Status | Notes |
 |---|---|---|
 | Part 1 | complete; simple rewrite | Plain top-3 baseline reproduced; all 11 tests and the full pipeline passed. Supplied inputs unchanged. Sunday-hours and Mumbai unsupported acceptances retained. Current evidence is in outputs/. README now qualifies the strategy choice and reports the measured demo. |
-| Part 2 | Task 6 done; Tasks 7-10 not started | Dependencies unified. Administrative appointment lookup and data-derived percentile escalation are implemented. Task 6 and all Part 1 tests pass; results in outputs/part2_escalation.txt and outputs/part2_tests.txt. The only Part 1 source change is the supported model-loading progress flag. |
+| Part 2 | Tasks 6-7 done; Tasks 8-10 not started | Dependencies unified; .venv rebuilt from requirements.txt, Part 1 env kept as ignored .venv-part1. Task 6: lookup and percentile escalation (outputs/part2_escalation.txt). Task 7: settings.py, rag_lookup, ReAct MockLLM and three-agent crew; tool counts 1/0, 0/1, 1/1 for the three demo questions (outputs/part2_crew.txt). All 29 tests pass (outputs/part2_tests.txt). Memory, schema and guardrails not written. |
 | Part 3 | not started | Out of scope. |
 | Part 4 | not started | Out of scope. |

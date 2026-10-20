@@ -172,6 +172,20 @@ This score is an administrative follow-up flag, not a medical assessment; I neve
 
 PowerShell: `.\.venv\Scripts\python.exe run_task6.py`. Bash: `.venv/bin/python run_task6.py`. [Measured report](outputs/part2_escalation.txt) · [Test results](outputs/part2_tests.txt).
 
+### Crew
+
+I run a sequential CrewAI crew driven by a deterministic `MockLLM`, offline and with zero API keys. The Retrieval Agent has only `rag_lookup` (sentence collection, saved threshold), the Lookup Agent alone has `check_appointment_status`, and the Response Composer has no tools and only joins their outputs under labels, adding the KB08 note when a record is shown. The mock accepts a tool result only from its own latest `Action` with an exact tool name, JSON input and a real `Observation`, and fills tool arguments from each tool's schema.
+
+| Question | rag_lookup | check_appointment_status |
+|---|---:|---:|
+| What is the cancellation and rescheduling window? | 1 | 0 |
+| What is the status of APT-007? | 0 | 1 |
+| What is the status of APT-007 and can I reschedule it? | 1 | 1 |
+
+Every LLM call came from a real agent and task with no `tools` argument, so the ReAct path ran. `settings.py` sets all offline flags before CrewAI loads, including `CREWAI_TRACING_ENABLED=false`; the run shows CrewAI's storage at the repository's `.crewai/` folder. For the combined question, retrieval accepted at top-1 similarity 0.327158928, just above the 0.319332987 threshold, and quoted lab and refill text beside the cancellation policy; the policy text does not address rescheduling a Cancelled appointment such as APT-007. I did not tune anything.
+
+Task 7 runs in a fresh `.venv` built from `requirements.txt`; I kept the Part 1 environment as the ignored `.venv-part1`. PowerShell: `.\.venv\Scripts\python.exe run_task7.py`. Bash: `.venv/bin/python run_task7.py` (Bash not verified). All 29 tests pass. [Crew output](outputs/part2_crew.txt) · [Test results](outputs/part2_tests.txt).
+
 ## What I learned in Part 2
 
 [I will write this myself]
