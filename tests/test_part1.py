@@ -13,6 +13,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import queries
 import rag
 from dataset import APPOINTMENTS, CATEGORY_WEIGHTS, FEE_RANGES, STATUS_WEIGHTS, generate_appointments
 from evaluate import document_metrics
@@ -168,9 +169,16 @@ class Part1Tests(unittest.TestCase):
     #   with a message that mentions calibration.
     def test_missing_calibration_is_an_error(self):
         missing = self.store.parent / "missing-calibration.json"
+        # RuntimeError is also accepted, but answer() currently raises only FileNotFoundError.
         with self.assertRaises((FileNotFoundError, RuntimeError)) as caught:
             answer("What are the fees?", store=self.store, calibration_path=missing)
         self.assertIn("calibrat", str(caught.exception).lower())
+
+    # Check the two TOP_K constants agree.
+    # evaluate.py prints queries.TOP_K in its headings, but search() uses rag.TOP_K, so if
+    #   only one were changed the printed "top-k chunks" would not match what was retrieved.
+    def test_printed_top_k_matches_search_top_k(self):
+        self.assertEqual(queries.TOP_K, rag.TOP_K)
 
 
 if __name__ == "__main__":

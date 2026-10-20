@@ -24,6 +24,7 @@
 - Commit in small steps with clear messages; update tests with each task.
 - Guardrail test sets live in guardrail_queries.py, committed before the guardrail is built, and are never edited afterwards.
 - Report failed checks, skipped work and deviations plainly. Do not tune queries, labels, chunk sizes or retrieval to improve measured results.
+- Never rerun run_part1.py or regenerate any file in outputs/ that existed before Part 2; Part 1 evidence is fixed. Part 2 writes only new outputs/part2_*.txt files.
 
 ## Fixed dataset design
 
