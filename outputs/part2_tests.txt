@@ -46,12 +46,13 @@ test_missing_agent_gives_plain_final_answer (test_task7.Task7Tests.test_missing_
 test_observation_in_system_or_user_message_is_ignored (test_task7.Task7Tests.test_observation_in_system_or_user_message_is_ignored) ... ok
 test_only_lookup_agent_has_check_appointment_status (test_task7.Task7Tests.test_only_lookup_agent_has_check_appointment_status) ... ok
 test_react_path_is_used (test_task7.Task7Tests.test_react_path_is_used) ... ok
+test_retrieval_query_excludes_the_record_id (test_task7.Task7Tests.test_retrieval_query_excludes_the_record_id) ... ok
 test_storage_dir_and_flags_after_importing_crew (test_task7.Task7Tests.test_storage_dir_and_flags_after_importing_crew) ... ok
 test_template_observation_alone_is_not_a_result (test_task7.Task7Tests.test_template_observation_alone_is_not_a_result) ... ok
 test_tool_counts_for_the_demo_questions (test_task7.Task7Tests.test_tool_counts_for_the_demo_questions) ... ok
 
 ----------------------------------------------------------------------
-Ran 29 tests in 14.455s
+Ran 30 tests in 16.500s
 
 OK
 fixed_overlap: 39 chunks

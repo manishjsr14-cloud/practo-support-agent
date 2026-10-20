@@ -110,12 +110,13 @@ class Task7Tests(unittest.TestCase):
         self.assertNotIn("I tried reusing", reply)
 
     # Pitfall 2: arguments come from the tool's declared schema, not from its name.
+    # The query argument carries only the policy clause of a combined question.
     def test_arguments_follow_the_tool_schema(self):
         question = "What is the status of APT-007 and can I reschedule it?"
         agent, task = fake([crew.rag_lookup_tool], question)
         reply = MockLLM(model="mock-llm").call([], from_task=task, from_agent=agent)
         self.assertIn("Action: rag_lookup", reply)
-        self.assertEqual(json.loads(reply.split("Action Input:")[1]), {"query": question})
+        self.assertEqual(json.loads(reply.split("Action Input:")[1]), {"query": "can I reschedule it?"})
         agent, task = fake([misleading_lookup_tool], question)
         reply = MockLLM(model="mock-llm").call([], from_task=task, from_agent=agent)
         self.assertEqual(json.loads(reply.split("Action Input:")[1]), {"record_id": "APT-007"})
@@ -140,14 +141,22 @@ class Task7Tests(unittest.TestCase):
                 self.assertTrue(all(call["agent"] and call["task"] for call in result["calls"]))
                 self.assertEqual(result["counts"], expected)
 
+    # The record part belongs to the Lookup Agent: retrieval for the combined question must
+    # receive only the policy clause, never the appointment id.
+    def test_retrieval_query_excludes_the_record_id(self):
+        queries = self.results["What is the status of APT-007 and can I reschedule it?"]["rag_queries"]
+        self.assertEqual(len(queries), 1)
+        self.assertNotIn("APT-007", queries[0])
+
     # Drafts carry real policy text or real record fields, never template text.
     def test_drafts_contain_real_content_and_no_placeholders(self):
         for question, result in self.results.items():
             with self.subTest(question=question):
                 for text in PLACEHOLDERS:
                     self.assertNotIn(text, result["draft"])
-                if QUERIES[question]["rag_lookup"]:
-                    self.assertIn(rag_lookup(question)["answer"], result["draft"])
+                # Compare with retrieval for the exact text the Retrieval Agent sent.
+                for sent in result["rag_queries"]:
+                    self.assertIn(rag_lookup(sent)["answer"], result["draft"])
                 if QUERIES[question]["check_appointment_status"]:
                     self.assertIn("record_id: APT-007; status: Cancelled", result["draft"])
                     self.assertIn("(KB08)", result["draft"])

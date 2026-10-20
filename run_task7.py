@@ -39,6 +39,7 @@ def make_report():
         lines += ["", "=" * 72, f"Question: {question}",
                   f"Tool calls: rag_lookup={counts['rag_lookup']}; "
                   f"check_appointment_status={counts['check_appointment_status']}",
+                  "Text sent to rag_lookup: " + (" | ".join(repr(q) for q in result["rag_queries"]) or "(none)"),
                   f"LLM calls: {len(calls)}; all with agent and task: {complete}; "
                   f"tools argument always None (ReAct path): {react}",
                   "--- Retrieval Agent output", result["outputs"]["Retrieval"],

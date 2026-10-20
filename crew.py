@@ -15,6 +15,8 @@ from tools import check_appointment_status, rag_lookup
 
 # How many times each tool ran during the current run_crew() call.
 COUNTS = {"rag_lookup": 0, "check_appointment_status": 0}
+# The exact text sent to rag_lookup during the current run, so reports can show it.
+RAG_QUERIES = []
 
 
 @tool("rag_lookup")
@@ -22,6 +24,7 @@ def rag_lookup_tool(query: str) -> str:
     """Quote the clinic policy text that best matches a policy question."""
     # Count first, then return the retrieved text, its sources and its top-1 similarity.
     COUNTS["rag_lookup"] += 1
+    RAG_QUERIES.append(query)
     result = rag_lookup(query)
     return (f"{result['answer']}\nSources: {', '.join(result['source_ids']) or '(none)'}\n"
             f"Top-1 similarity: {result['similarity']:.9f}")
@@ -68,12 +71,14 @@ def build_crew(llm):
 
 # Run the crew for one question with fresh counters and a fresh MockLLM.
 # Takes: the customer's question. Returns: each task's output, the final draft, the tool
-#   counts, the MockLLM's call log and the crew (for inspection in tests).
+#   counts, the text sent to rag_lookup, the MockLLM's call log and the crew (for tests).
 def run_crew(question):
     for name in COUNTS:
         COUNTS[name] = 0
+    RAG_QUERIES.clear()
     llm = MockLLM(model="mock-llm")
     crew = build_crew(llm)
     result = crew.kickoff(inputs={"question": question})
     return {"question": question, "outputs": {task.name: task.output.raw for task in crew.tasks},
-            "draft": result.raw, "counts": dict(COUNTS), "calls": list(llm.call_log), "crew": crew}
+            "draft": result.raw, "counts": dict(COUNTS), "rag_queries": list(RAG_QUERIES),
+            "calls": list(llm.call_log), "crew": crew}

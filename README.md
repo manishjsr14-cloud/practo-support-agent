@@ -182,9 +182,18 @@ I run a sequential CrewAI crew driven by a deterministic `MockLLM`, offline and 
 | What is the status of APT-007? | 0 | 1 |
 | What is the status of APT-007 and can I reschedule it? | 1 | 1 |
 
-Every LLM call came from a real agent and task with no `tools` argument, so the ReAct path ran. `settings.py` sets all offline flags before CrewAI loads, including `CREWAI_TRACING_ENABLED=false`; the run shows CrewAI's storage at the repository's `.crewai/` folder. For the combined question, retrieval accepted at top-1 similarity 0.327158928, just above the 0.319332987 threshold, and quoted lab and refill text beside the cancellation policy; the policy text does not address rescheduling a Cancelled appointment such as APT-007. I did not tune anything.
+Every LLM call came from a real agent and task with no `tools` argument, so the ReAct path ran. `settings.py` sets all offline flags before CrewAI loads, including `CREWAI_TRACING_ENABLED=false`; the run shows CrewAI's storage at the repository's `.crewai/` folder.
 
-Task 7 runs in a fresh `.venv` built from `requirements.txt`; I kept the Part 1 environment as the ignored `.venv-part1`. PowerShell: `.\.venv\Scripts\python.exe run_task7.py`. Bash: `.venv/bin/python run_task7.py` (Bash not verified). All 29 tests pass. [Crew output](outputs/part2_crew.txt) · [Test results](outputs/part2_tests.txt).
+The Retrieval Agent now sends only the policy clause; the appointment id belongs to the Lookup Agent. Query 3, before (previous committed run, `46e466c`) and after (current output):
+
+| Query 3 | Text sent to `rag_lookup` | Top-1 | Sources |
+|---|---|---:|---|
+| Before | What is the status of APT-007 and can I reschedule it? | 0.327158928 | 02_cancellation_rescheduling, 06_lab_turnaround, 05_prescription_refills |
+| After | can I reschedule it? | 0.501042783 | 02_cancellation_rescheduling (all three chunks) |
+
+KB02 covers rescheduling in general (24-hour window, an available slot, the original fee kept, staff confirmation) but does not say whether an already-Cancelled appointment such as APT-007 can be rescheduled. I changed no threshold, calibration or KB text.
+
+Task 7 runs in a fresh `.venv` built from `requirements.txt`; I kept the Part 1 environment as the ignored `.venv-part1`. PowerShell: `.\.venv\Scripts\python.exe run_task7.py`. Bash: `.venv/bin/python run_task7.py` (Bash not verified). All 30 tests pass. [Crew output](outputs/part2_crew.txt) · [Test results](outputs/part2_tests.txt).
 
 ## What I learned in Part 2
 

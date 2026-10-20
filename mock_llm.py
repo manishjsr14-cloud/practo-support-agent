@@ -81,11 +81,22 @@ def tool_arguments(tool, question):
         found = re.findall(r"APT-[0-9]{3}", question)
         return ({"record_id": found[0]}, None) if found else (None, NO_RECORD_ID)
     if "query" in fields:
-        # A policy question exists if any words remain once the status clause and "and"
-        # are removed; the full question is then sent, unchanged, to retrieval.
-        rest = re.sub(r"\band\b", " ", STATUS_CLAUSE.sub(" ", question), flags=re.I)
-        return ({"query": question}, None) if re.search(r"[A-Za-z]", rest) else (None, NO_POLICY_QUESTION)
+        # Only the policy clause goes to retrieval: the record part belongs to the Lookup
+        # Agent. If no words remain, there is no policy question.
+        clause = policy_clause(question)
+        return ({"query": clause}, None) if re.search(r"[A-Za-z]", clause) else (None, NO_POLICY_QUESTION)
     return None, UNSUPPORTED_TOOL
+
+
+# Remove the "status of APT-xxx" clause and the "and" that joined it to the rest.
+# Takes: the question. Returns: the remaining policy clause ("" or punctuation if none).
+# Example: "What is the status of APT-007 and can I reschedule it?" -> "can I reschedule it?"
+# A question without a status clause is returned unchanged.
+def policy_clause(question):
+    clause = STATUS_CLAUSE.sub("", question).strip()
+    # Drop a leading "and" (status clause first) or a trailing "and" (status clause last).
+    clause = re.sub(r"^\W*and\b|,?\s*\band\W*$", "", clause, flags=re.I)
+    return clause.strip(" ,;")
 
 
 # Join the earlier agents' outputs under labels, in task order, adding no new facts.
