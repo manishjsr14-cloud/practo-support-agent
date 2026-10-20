@@ -1,0 +1,44 @@
+Interpreter: C:\Projects\practo-support-agent-migration-20261015\venv\Scripts\python.exe
+Versions: numpy=2.5.4; transformers=5.19.0; sentence-transformers=6.1.0; chromadb=1.5.9
+HF_HUB_DISABLE_PROGRESS_BARS=1
+Hub progress bars disabled: True
+fixed_overlap: 39 chunks
+sentence: 36 chunks
+Model: sentence-transformers/all-MiniLM-L6-v2; revision: c9745ed1d9f207416be6d2e6f8de32d1f16199bf
+Fixed size=320; overlap=80; sentence size=2
+HF_HUB_OFFLINE=1; ANONYMIZED_TELEMETRY=False; CREWAI_DISABLE_TELEMETRY=true
+test_answers_are_verbatim_retrieved_context (test_part1.Part1Tests.test_answers_are_verbatim_retrieved_context) ... ok
+test_chunk_counts_and_parent_metadata (test_part1.Part1Tests.test_chunk_counts_and_parent_metadata) ... ok
+test_dataset_coverage_and_follow_up_band (test_part1.Part1Tests.test_dataset_coverage_and_follow_up_band) ... ok
+test_dataset_fields_and_ranges (test_part1.Part1Tests.test_dataset_fields_and_ranges) ... ok
+test_dataset_is_deterministic_and_matches_json (test_part1.Part1Tests.test_dataset_is_deterministic_and_matches_json) ... ok
+test_document_metrics_deduplicate_parents (test_part1.Part1Tests.test_document_metrics_deduplicate_parents) ... ok
+test_knowledge_base_has_all_topics_and_valid_sentences (test_part1.Part1Tests.test_knowledge_base_has_all_topics_and_valid_sentences) ... 01_appointment_booking: 5 sentences
+02_cancellation_rescheduling: 5 sentences
+03_consultation_fees: 5 sentences
+04_insurance_claims: 5 sentences
+05_prescription_refills: 5 sentences
+06_lab_turnaround: 5 sentences
+07_telemedicine: 5 sentences
+08_emergency_protocol: 5 sentences
+09_patient_privacy: 5 sentences
+10_follow_up_discount: 5 sentences
+11_second_opinion: 5 sentences
+12_home_visits: 5 sentences
+KB validation: PASS; documents=12; required filenames present
+ok
+test_missing_calibration_is_an_error (test_part1.Part1Tests.test_missing_calibration_is_an_error) ... ok
+test_out_of_scope_question_uses_fallback (test_part1.Part1Tests.test_out_of_scope_question_uses_fallback) ... ok
+test_saved_calibration_separates_observed_clusters (test_part1.Part1Tests.test_saved_calibration_separates_observed_clusters) ... ok
+test_search_returns_plain_top_three (test_part1.Part1Tests.test_search_returns_plain_top_three) ... ok
+test_follow_up_and_age_have_independent_contributions (test_task6.Task6Tests.test_follow_up_and_age_have_independent_contributions) ... ok
+test_invalid_and_unknown_ids_return_controlled_errors (test_task6.Task6Tests.test_invalid_and_unknown_ids_return_controlled_errors) ... ok
+test_lookup_returns_the_six_recorded_fields_and_score (test_task6.Task6Tests.test_lookup_returns_the_six_recorded_fields_and_score) ... ok
+test_one_record_perturbation_recomputes_the_live_threshold (test_task6.Task6Tests.test_one_record_perturbation_recomputes_the_live_threshold) ... ok
+test_recommendation_includes_the_threshold_and_excludes_the_next_lower_float (test_task6.Task6Tests.test_recommendation_includes_the_threshold_and_excludes_the_next_lower_float) ... ok
+test_scores_match_the_formula_and_stay_in_range (test_task6.Task6Tests.test_scores_match_the_formula_and_stay_in_range) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 44.136s
+
+OK

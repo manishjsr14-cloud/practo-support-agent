@@ -1,0 +1,58 @@
+Task 6: administrative appointment escalation
+Formula: escalation_score = 0.6 * (1 if follow_up_required else 0) + 0.4 * (days_since_created / 30)
+FOLLOW_UP_WEIGHT=0.6; RECENCY_WEIGHT=0.4; RECENCY_DAYS=30; ESCALATION_PERCENTILE=80
+Percentile method: numpy.percentile(method='linear'); NumPy default linear interpolation.
+Designed score bounds: minimum=0.0; maximum=1.0
+Records: 50
+
+| Statistic | Escalation score |
+|---|---:|
+| Minimum | 0.000000 |
+| Median | 0.320000 |
+| 80th percentile | 0.693333 |
+| Maximum | 0.986667 |
+| Mean | 0.372000 |
+
+Threshold (full precision): 0.6933333333333334
+Recommendation rule: escalation_score >= escalation_threshold().
+Records at or above threshold: 11/50
+Follow-up records: 13; at or above threshold: 11/13
+This is an administrative follow-up flag, not a medical assessment (KB08). Never use it to judge medical urgency.
+
+Example lookups:
+{
+  "record_id": "APT-004",
+  "status": "Rescheduled",
+  "consultation_fee_inr": 650,
+  "follow_up_required": true,
+  "days_since_created": 1,
+  "escalation_score": 0.6133333333333333
+}
+{
+  "record_id": "APT-007",
+  "status": "Cancelled",
+  "consultation_fee_inr": 500,
+  "follow_up_required": true,
+  "days_since_created": 25,
+  "escalation_score": 0.9333333333333333
+}
+{
+  "record_id": "APT-001",
+  "status": "Completed",
+  "consultation_fee_inr": 500,
+  "follow_up_required": false,
+  "days_since_created": 0,
+  "escalation_score": 0.0
+}
+{
+  "record_id": "APT-002",
+  "status": "Scheduled",
+  "consultation_fee_inr": 950,
+  "follow_up_required": false,
+  "days_since_created": 4,
+  "escalation_score": 0.05333333333333334
+}
+{
+  "error": "No appointment was found for this ID.",
+  "record_id": "APT-999"
+}

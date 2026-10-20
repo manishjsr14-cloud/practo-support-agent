@@ -9,7 +9,7 @@ import re
 
 for name, value in {"HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1",
                     "ANONYMIZED_TELEMETRY": "False", "CREWAI_DISABLE_TELEMETRY": "true",
-                    "OTEL_SDK_DISABLED": "true"}.items():
+                    "OTEL_SDK_DISABLED": "true", "HF_HUB_DISABLE_PROGRESS_BARS": "1"}.items():
     os.environ[name] = value
 
 ROOT = Path(__file__).resolve().parent
