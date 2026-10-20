@@ -4,3 +4,4 @@ __pycache__/
 chroma/
 .venv-part1/
 .crewai/
+.vscode/
