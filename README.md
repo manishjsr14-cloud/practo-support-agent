@@ -170,7 +170,7 @@ I use the 80th percentile with NumPy's default linear interpolation: `0.69333333
 
 This score is an administrative follow-up flag, not a medical assessment; I never use it to judge medical urgency ([KB08](kb/08_emergency_protocol.md)).
 
-PowerShell: `.\.venv\Scripts\python.exe run_task6.py`. [Measured report](outputs/part2_escalation.txt) · [Test results](outputs/part2_tests.txt).
+PowerShell: `.\.venv\Scripts\python.exe run_task6.py`. Bash: `.venv/bin/python run_task6.py`. [Measured report](outputs/part2_escalation.txt) · [Test results](outputs/part2_tests.txt).
 
 ## What I learned in Part 2
 
