@@ -1,13 +1,15 @@
 """Appointment lookup and an administrative follow-up score."""
 # What: looks up one appointment by its id, computes its escalation score, and decides
 #   whether it should be flagged for administrative follow-up.
-# Task: Part 2, Task 6. Used by: run_task6.py and tests/test_task6.py.
+# Task: Part 2, Task 6; rag_lookup() was added in Task 7. Used by: run_task6.py,
+#   tests/test_task6.py and crew.py (which wraps these functions as CrewAI tools).
 # The numbers it uses come from rules.py; the appointment records come from dataset.py.
 
 import re
 
 import numpy as np
 
+import rag
 from dataset import APPOINTMENTS
 from rules import ESCALATION_PERCENTILE, FOLLOW_UP_WEIGHT, RECENCY_DAYS, RECENCY_WEIGHT
 
@@ -69,3 +71,14 @@ def escalation_threshold() -> float:
 # bool() turns a NumPy boolean into a plain Python True/False.
 def recommend_escalation(score: float) -> bool:
     return bool(score >= escalation_threshold())
+
+
+# Answer a policy question with Part 1's retrieval (Task 7).
+# Takes: a question. Returns: the quoted answer text (or the fallback), the source parent
+#   ids and the top-1 cosine similarity.
+# Why: it reuses rag.answer() unchanged, with the sentence collection and the threshold
+#   saved in outputs/calibration.json, so the crew sees exactly what Part 1 retrieves.
+def rag_lookup(query: str) -> dict:
+    result = rag.answer(query, strategy="sentence")
+    return {"answer": result["answer"], "source_ids": result["source_ids"],
+            "similarity": result["similarity"]}
