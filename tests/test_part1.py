@@ -1,4 +1,9 @@
 """Small checks for the dataset, knowledge base, and plain cosine RAG pipeline."""
+# What: automated checks that the Part 1 dataset, KB, chunking, retrieval, calibration
+#   and fallback behave as AGENTS.md requires.
+# Task: Part 1 tests. Used by: run_part1.py (saved as outputs/tests.txt) and
+#   "python -m unittest discover -s tests". It imports rag.py, dataset.py, evaluate.py
+#   and queries.py.
 
 from collections import Counter
 import json
@@ -18,7 +23,10 @@ from rag import CALIBRATION_PATH, ROOT, STRATEGIES, answer, build_index, load_do
 class Part1Tests(unittest.TestCase):
     @classmethod
     # Build a separate temporary store once so tests run sequentially without replacing the demo index.
+    # Takes: the test class. Returns: nothing; saves the store path and chunk counts on it.
     def setUpClass(cls):
+        # ignore_cleanup_errors avoids a failure if a database file is still open when
+        # the temporary folder is deleted at the end.
         cls.temporary = tempfile.TemporaryDirectory(ignore_cleanup_errors=True)
         cls.store = Path(cls.temporary.name) / "chroma"
         cls.counts = build_index(store=cls.store)
@@ -29,12 +37,15 @@ class Part1Tests(unittest.TestCase):
         cls.temporary.cleanup()
 
     # Check that the fixed seed reproduces the saved fabricated records exactly.
+    # Protects: "running the supplied generator must reproduce the supplied JSON" (seed 42).
     def test_dataset_is_deterministic_and_matches_json(self):
         self.assertEqual(APPOINTMENTS, generate_appointments())
         saved = json.loads((ROOT / "data" / "appointments.json").read_text(encoding="utf-8"))
         self.assertEqual(APPOINTMENTS, saved)
 
     # Check category/status coverage and the actual follow-up fraction.
+    # Protects: 50 records, every category at least 3 times, every status present, and a
+    #   follow-up percentage within 10-30%.
     def test_dataset_coverage_and_follow_up_band(self):
         self.assertEqual(len(APPOINTMENTS), 50)
         categories = Counter(row["category"] for row in APPOINTMENTS)
@@ -45,6 +56,8 @@ class Part1Tests(unittest.TestCase):
         self.assertTrue(0.10 <= fraction <= 0.30)
 
     # Check unique identifiers, integer ages, boolean flags, and specialty fee ranges.
+    # Protects: the six required fields, fees inside each category's range rounded to
+    #   50 INR, and days_since_created between 0 and 30.
     def test_dataset_fields_and_ranges(self):
         self.assertEqual(len({row["record_id"] for row in APPOINTMENTS}), len(APPOINTMENTS))
         for row in APPOINTMENTS:
@@ -59,6 +72,8 @@ class Part1Tests(unittest.TestCase):
             self.assertIs(type(row["follow_up_required"]), bool)
 
     # Check all policy documents retain the required sentence counts.
+    # Protects: Task 2: all 12 topic files exist with 2-5 sentences each. The second half
+    #   hides one file (with patch) to prove a missing topic is reported by name.
     def test_knowledge_base_has_all_topics_and_valid_sentences(self):
         self.assertTrue(validate_kb())
         documents = load_documents()
@@ -66,11 +81,14 @@ class Part1Tests(unittest.TestCase):
         for body in documents.values():
             self.assertTrue(2 <= len(re.split(r"(?<=[.!?])\s+", body)) <= 5)
         missing_topic = {key: value for key, value in documents.items() if key != "12_home_visits"}
+        # patch temporarily replaces rag.load_documents so validate_kb sees only 11 files.
         with patch("rag.load_documents", return_value=missing_topic):
             with self.assertRaisesRegex(ValueError, "12_home_visits.md"):
                 validate_kb()
 
     # Check both chunkers retain parent identifiers and produce the expected source chunks.
+    # Protects: "every chunk carries its parent document id"; unique chunk ids; no empty
+    #   chunks; and the known counts (39 fixed, 36 sentence) for the unchanged KB.
     def test_chunk_counts_and_parent_metadata(self):
         documents = load_documents()
         self.assertEqual(self.counts, {"fixed_overlap": 39, "sentence": 36})
@@ -82,12 +100,15 @@ class Part1Tests(unittest.TestCase):
             self.assertTrue(all(chunk["text"] for chunk in chunks))
 
     # Check retrieval returns three valid chunks in decreasing cosine-similarity order.
+    # Protects: "plain top-3 vector search, nothing else": search() must return exactly
+    #   what a direct Chroma query returns, with similarity = 1 - distance.
     def test_search_returns_plain_top_three(self):
         for strategy in STRATEGIES:
             question = DEMO_QUERIES[1]["query"]
             hits = search(question, strategy=strategy, store=self.store)
             self.assertEqual(len(hits), 3)
             self.assertEqual(hits[0]["parent_id"], "02_cancellation_rescheduling")
+            # Query Chroma directly, bypassing search(), to compare against.
             vector = rag.model().encode([question], normalize_embeddings=True, convert_to_numpy=True,
                                         show_progress_bar=False).tolist()
             direct = rag.client(self.store).get_collection(f"practo_{strategy}", embedding_function=None).query(
@@ -96,6 +117,8 @@ class Part1Tests(unittest.TestCase):
             self.assertEqual([hit["similarity"] for hit in hits], [1 - value for value in direct["distances"][0]])
 
     # Check saved calibration uses observed separating clusters rather than a preset cutoff.
+    # Protects: max(out_of_scope) < threshold < min(in_scope), and the threshold is
+    #   exactly the midpoint. Needs outputs/calibration.json from run_part1.py.
     def test_saved_calibration_separates_observed_clusters(self):
         self.assertTrue(CALIBRATION_PATH.exists(), "Run python run_part1.py before running tests.")
         calibration = json.loads(CALIBRATION_PATH.read_text(encoding="utf-8"))
@@ -110,6 +133,7 @@ class Part1Tests(unittest.TestCase):
             self.assertEqual(values["threshold"], (max(negatives) + min(positives)) / 2)
 
     # Check the unrelated demonstration question receives no invented answer or citations.
+    # Protects: the fallback rule: the brownie question gets "I don't know" and no sources.
     def test_out_of_scope_question_uses_fallback(self):
         for strategy in STRATEGIES:
             result = answer(DEMO_OUT_OF_SCOPE, strategy=strategy, store=self.store)
@@ -119,6 +143,8 @@ class Part1Tests(unittest.TestCase):
             self.assertEqual(result["chunk_ids"], [])
 
     # Check accepted answers and citations exactly match the retrieved context.
+    # Protects: "return verbatim retrieved context under MOCK_LLM": no text is invented,
+    #   and all 9 labelled questions are answered rather than refused.
     def test_answers_are_verbatim_retrieved_context(self):
         for strategy in STRATEGIES:
             for row in DEMO_QUERIES:
@@ -130,12 +156,16 @@ class Part1Tests(unittest.TestCase):
                 self.assertEqual(result["chunk_ids"], [hit["chunk_id"] for hit in hits])
 
     # Check repeated chunks from one parent cannot inflate document-level metrics.
+    # Protects: "deduplicate retrieved parent ids": ["a", "a", "b"] counts as 2 documents,
+    #   so precision = 1/2 and recall = 1/2 (one of the two labelled documents found).
     def test_document_metrics_deduplicate_parents(self):
         metrics = document_metrics(["a", "a", "b"], ["a", "c"])
         self.assertEqual((metrics["numerator"], metrics["precision_denominator"], metrics["recall_denominator"]), (1, 2, 2))
         self.assertEqual((metrics["precision"], metrics["recall"]), (0.5, 0.5))
 
     # Check a missing calibration file gives an error instead of silently selecting a threshold.
+    # Protects: "do not select a preset threshold": without calibration, answer() must fail
+    #   with a message that mentions calibration.
     def test_missing_calibration_is_an_error(self):
         missing = self.store.parent / "missing-calibration.json"
         with self.assertRaises((FileNotFoundError, RuntimeError)) as caught:
