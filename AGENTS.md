@@ -124,6 +124,6 @@ The Part 2 guardrail addresses this in guardrails.py.
 | Part | Status | Notes |
 |---|---|---|
 | Part 1 | complete; simple rewrite | Plain top-3 baseline reproduced; all 11 tests and the full pipeline passed. Supplied inputs unchanged. Sunday-hours and Mumbai unsupported acceptances retained. Current evidence is in outputs/. README now qualifies the strategy choice and reports the measured demo. |
-| Part 2 | dependencies unified; no Part 2 code yet | requirements.txt updated and merged, original kept as requirements-part1.txt. Retrieval identical in both environments, similarities within 4e-7. Results in outputs/ (Part 1 pins) and outputs/unified_env/. |
+| Part 2 | Task 6 done; Tasks 7-10 not started | Dependencies unified. Administrative appointment lookup and data-derived percentile escalation are implemented. Task 6 and all Part 1 tests pass; results in outputs/part2_escalation.txt and outputs/part2_tests.txt. The only Part 1 source change is the supported model-loading progress flag. |
 | Part 3 | not started | Out of scope. |
 | Part 4 | not started | Out of scope. |

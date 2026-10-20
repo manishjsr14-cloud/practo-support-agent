@@ -149,3 +149,29 @@ I produced the main tables above from `outputs/` with `requirements-part1.txt`; 
 | Tests passed | 11 | 11 |
 
 I treat differences in the seventh decimal place and beyond as floating-point noise; no retrieved chunk, answer or ANSWER/FALLBACK decision changed.
+
+## Part 2
+
+### Escalation score
+
+I calculate `escalation_score = 0.6 * (1 if follow_up_required else 0) + 0.4 * (days_since_created / 30)`.
+
+I give the follow-up flag weight 0.6 because it represents an explicit administrative action; record age has weight 0.4 because older records deserve review, normalized over 30 days.
+
+| Statistic | Escalation score |
+|---|---:|
+| Minimum | 0.000000 |
+| Median | 0.320000 |
+| 80th percentile | 0.693333 |
+| Maximum | 0.986667 |
+| Mean | 0.372000 |
+
+I use the 80th percentile with NumPy's default linear interpolation: `0.6933333333333334`. The rule `score >= threshold` selects 11/50 records, including 11/13 follow-up records; ties are included.
+
+This score is an administrative follow-up flag, not a medical assessment; I never use it to judge medical urgency ([KB08](kb/08_emergency_protocol.md)).
+
+PowerShell: `.\.venv\Scripts\python.exe run_task6.py`. [Measured report](outputs/part2_escalation.txt) · [Test results](outputs/part2_tests.txt).
+
+## What I learned in Part 2
+
+[I will write this myself]
