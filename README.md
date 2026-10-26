@@ -193,7 +193,28 @@ The Retrieval Agent now sends only the policy clause; the appointment id belongs
 
 KB02 covers rescheduling in general (24-hour window, an available slot, the original fee kept, staff confirmation) but does not say whether an already-Cancelled appointment such as APT-007 can be rescheduled. I changed no threshold, calibration or KB text. The split is per 'and'-separated part, so a part that holds both an id and a policy question, such as 'Can I reschedule APT-007?', is dropped whole and no policy question reaches retrieval; and in 'can I reschedule it?' the word 'it' has no referent.
 
-Task 7 runs in a fresh `.venv` built from `requirements.txt`; I kept the Part 1 environment as the ignored `.venv-part1`. PowerShell: `.\.venv\Scripts\python.exe run_task7.py`. Bash: `.venv/bin/python run_task7.py` (Bash not verified). All 32 tests pass. [Crew output](outputs/part2_crew.txt) · [Test results](outputs/part2_tests.txt).
+Task 7 runs in a fresh `.venv` built from `requirements.txt`; I kept the Part 1 environment as the ignored `.venv-part1`. PowerShell: `.\.venv\Scripts\python.exe run_task7.py`. Bash: `.venv/bin/python run_task7.py` (Bash not verified). [Crew output](outputs/part2_crew.txt) · [Test results](outputs/part2_tests.txt).
+
+### Memory
+
+`memory.py` keeps one LangChain `InMemoryChatMessageHistory` per `session_id`, in this process only, wrapped with `RunnableWithMessageHistory`. Both classes are deprecated in langchain-core 1.6.x, and I leave the `LangChainDeprecationWarning` visible. All user text goes through `prepare_user_text()`, which returns it unchanged for now (Task 10 will mask phone numbers there). History stores that function's output and the final answer. A question reuses the session's most recent `APT-xxx` id only if it names no id itself and contains a refer-back word from `rules.py` (it, its, this/that/the/my appointment). That id goes on the Lookup task only, so retrieval never sees it.
+
+| Turn | Question | Remembered id | rag_lookup | check_appointment_status | record_id |
+|---|---|---|---:|---:|---|
+| A1 | What is the status of APT-007? | None | 0 | 1 | APT-007 |
+| A2 | What is its fee? | APT-007 | 1 | 1 | APT-007 |
+| A3 | What is the cancellation and rescheduling window? | None | 1 | 0 | null |
+| B1 | What is its fee? | None | 1 | 0 | null |
+
+B1 starts a new session, so its lookup says "No appointment record id was given in the question." Session B's history holds only its own two messages. A2 and B1 both send "What is its fee?" to retrieval and quote the standard-fee policy, so "its" is resolved for the lookup only.
+
+### Structured output
+
+`schema.py` defines `CrewResponse`, which rejects unknown fields; it is the Compose task's `output_pydantic`. In CrewAI 1.15.28 a JSON reply validates without another LLM call, but plain text makes CrewAI call the LLM again with no agent. So the MockLLM's Composer returns JSON with only `answer` filled. `pipeline.py` then fills `sources` (KB parent ids, each once), `tools_used`, `record_id` and `escalation_recommended = tools.recommend_escalation(score)` from the tools' own results, then validates again with `model_validate`. In every turn, every LLM call had an agent and task, and CrewAI returned a `CrewResponse`. A1 and A2 recommend escalation for APT-007 (`true`).
+
+`grounded` is a provisional rule until Task 10's guardrail replaces it: true when a tool returned real data. By that rule B1 counts as grounded even though "its" has no referent. `refused` is always false for now. An invalid payload (string `sources`, missing `refusal_reason`, extra `urgency`) is rejected, and the error names those three fields.
+
+PowerShell: `.\.venv\Scripts\python.exe run_task8_9.py`. Bash: `.venv/bin/python run_task8_9.py` (Bash not verified). All 44 tests pass. [Transcripts](outputs/part2_memory.txt) · [Test results](outputs/part2_tests.txt).
 
 ## What I learned in Part 2
 
