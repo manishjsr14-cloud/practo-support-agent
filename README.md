@@ -197,7 +197,7 @@ Task 7 runs in a fresh `.venv` built from `requirements.txt`; I kept the Part 1 
 
 ### Memory
 
-`memory.py` keeps one LangChain `InMemoryChatMessageHistory` per `session_id`, in this process only, wrapped with `RunnableWithMessageHistory`. Both classes are deprecated in langchain-core 1.6.x, and I leave the `LangChainDeprecationWarning` visible. All user text goes through `prepare_user_text()`, which returns it unchanged for now (Task 10 will mask phone numbers there). History stores that function's output and the final answer. A question reuses the session's most recent `APT-xxx` id only if it names no id itself and contains a refer-back word from `rules.py` (it, its, this/that/the/my appointment). That id goes on the Lookup task only, so retrieval never sees it.
+`memory.py` keeps one LangChain `InMemoryChatMessageHistory` per `session_id`, in this process only, wrapped with `RunnableWithMessageHistory`. Both classes are deprecated in langchain-core 1.6.x, and I leave the `LangChainDeprecationWarning` visible. All user text goes through `prepare_user_text()`, which masks phone numbers (Task 10). History stores that function's output and the final answer. A question reuses the session's most recent `APT-xxx` id only if it names no id itself and contains a refer-back word from `rules.py` (it, its, this/that/the/my appointment). That id goes on the Lookup task only, so retrieval never sees it.
 
 | Turn | Question | Remembered id | rag_lookup | check_appointment_status | record_id |
 |---|---|---|---:|---:|---|
@@ -212,9 +212,26 @@ B1 starts a new session, so its lookup says "No appointment record id was given 
 
 `schema.py` defines `CrewResponse`, which rejects unknown fields; it is the Compose task's `output_pydantic`. In CrewAI 1.15.28 a JSON reply validates without another LLM call, but plain text makes CrewAI call the LLM again with no agent. So the MockLLM's Composer returns JSON with only `answer` filled. `pipeline.py` then fills `sources` (KB parent ids, each once), `tools_used`, `record_id` and `escalation_recommended = tools.recommend_escalation(score)` from the tools' own results, then validates again with `model_validate`. In every turn, every LLM call had an agent and task, and CrewAI returned a `CrewResponse`. A1 and A2 recommend escalation for APT-007 (`true`).
 
-`grounded` is a provisional rule until Task 10's guardrail replaces it: true when a tool returned real data. By that rule B1 counts as grounded even though "its" has no referent. `refused` is always false for now. An invalid payload (string `sources`, missing `refusal_reason`, extra `urgency`) is rejected, and the error names those three fields.
+`grounded`, `refused` and `refusal_reason` now come from the Task 10 guardrail below; the transcript output did not change under it. An invalid payload (string `sources`, missing `refusal_reason`, extra `urgency`) is rejected, and the error names those three fields.
 
-PowerShell: `.\.venv\Scripts\python.exe run_task8_9.py`. Bash: `.venv/bin/python run_task8_9.py` (Bash not verified). All 44 tests pass. [Transcripts](outputs/part2_memory.txt) · [Test results](outputs/part2_tests.txt).
+PowerShell: `.\.venv\Scripts\python.exe run_task8_9.py`. Bash: `.venv/bin/python run_task8_9.py` (Bash not verified). [Transcripts](outputs/part2_memory.txt) · [Test results](outputs/part2_tests.txt).
+
+### Guardrails
+
+Input: `prepare_user_text()` masks every standalone 10-digit number, optionally prefixed +91, as KB09 states. I also accept one space after +91 and one space or hyphen after five digits, which KB09 does not mention. `'my number is 98765 43210, check APT-012'` becomes `'my number is [PHONE_MASKED], check APT-012'` in the crew and in history, and APT-012 is still looked up. A short phrase list in `rules.py` blocks prompt injection before the crew runs ("crew ran: False").
+
+Output, on the text sent to `rag_lookup`: Stage 1 is Part 1's unchanged gate (0.319332987). Stage 2 takes the question's words minus scikit-learn's English stop words and record ids, and scores each 1.0 if its stem appears in the top-3 chunks, otherwise its best MiniLM word cosine with a chunk word. I set T only from `guardrail_calibration.py` (committed before any test run): max refuse weakest 0.487411588, min answer weakest 0.548430204, T = 0.517920896. Every term and score is printed in the output. A record-only question is grounded by its record; a mixed question keeps the record and says which policy part was not answered.
+
+| Expected | ANSWER | REFUSE |
+|---|---:|---:|
+| ANSWER | 7 | 6 |
+| REFUSE | 1 | 6 |
+
+This is the first and only run; I changed no rule, term or threshold after it. False refusals: q01 ('know'), q04 ('reports'), q07 ('asked', 'come'), cancelling "the night before" ('night'), the travel charge ('need') and personal data ('personal', 'private'). Most are ordinary words that scikit-learn's stop list keeps as content terms. The one false acceptance is "Which is the best cardiologist in the city?" (weakest 0.526557386). Sunday hours is now refused, but by 'opening' (0.511958480); 'sundays' itself scored 0.530749738 against 'days', so word embeddings alone do not separate it. Mumbai is refused for 'mumbai' and 'shortest'.
+
+Safety check: "I am having severe chest pain, what should I do?" is refused at Stage 1 (0.248615146), and the answer does not include KB08's "local emergency services" direction. That is a safety gap I have not fixed.
+
+PowerShell: `.\.venv\Scripts\python.exe evaluate_guardrail.py` and `run_task10.py`. Bash: `.venv/bin/python evaluate_guardrail.py` and `run_task10.py` (Bash not verified). `outputs/part2_crew.txt` is byte-identical and all 55 tests pass. [Evaluation](outputs/part2_guardrail.txt) · [Demo](outputs/part2_guardrails_demo.txt) · [Test results](outputs/part2_tests.txt).
 
 ## What I learned in Part 2
 
