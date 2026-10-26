@@ -27,7 +27,8 @@ def build_response(result):
     if not isinstance(draft, CrewResponse):
         raise ValueError(f"The crew did not return a CrewResponse (got {type(draft).__name__}).")
     rag = result["rag_results"][-1] if result["rag_results"] else None
-    sources = list(rag["source_ids"]) if rag else []
+    # KB parent ids (not chunks): each once, in first-seen retrieval order.
+    sources = list(dict.fromkeys(rag["source_ids"])) if rag else []
     # The last lookup that found a record; a lookup error means no record.
     record = next((row for row in reversed(result["lookups"]) if "error" not in row), None)
     data = draft.model_dump()
