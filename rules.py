@@ -25,11 +25,12 @@ ESCALATION_PERCENTILE = 80
 REFER_BACK_WORDS = ("it", "its", "this appointment", "that appointment",
                     "the appointment", "my appointment")
 
-# Task 10: an Indian mobile number to mask (KB09). Ten digits starting 6-9, optionally
-#   prefixed +91 (with or without one space), with at most one space or hyphen after the
-#   first five digits. The lookarounds make it standalone: no letter or digit may touch
-#   it, so ids such as APT-012, dates and fees are never masked.
-PHONE_PATTERN = r"(?<![0-9A-Za-z])(?:\+91 ?)?[6-9][0-9]{4}[ -]?[0-9]{5}(?![0-9A-Za-z])"
+# Task 10: a contact number to mask, as KB09 states: any standalone 10-digit number,
+#   optionally prefixed +91. Two extra formats are also accepted: one space after +91,
+#   and one space or hyphen after the first five digits. The lookarounds make it
+#   standalone: no letter or digit may touch it, so ids such as APT-012 (3 digits),
+#   dates such as 2026-10-26 and fees such as INR 1200 are never masked.
+PHONE_PATTERN = r"(?<![0-9A-Za-z])(?:\+91 ?)?[0-9]{5}[ -]?[0-9]{5}(?![0-9A-Za-z])"
 PHONE_MASK = "[PHONE_MASKED]"
 
 # Task 10: phrases that try to override the assistant's instructions. A message containing

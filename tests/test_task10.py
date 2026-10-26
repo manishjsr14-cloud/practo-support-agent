@@ -21,13 +21,15 @@ class InputGuardrailTests(unittest.TestCase):
 
     # Accepted number forms are masked; ids, dates, fees and other digit runs are not.
     def test_what_is_and_is_not_masked(self):
-        masked = ["9876543210", "+919876543210", "+91 98765-43210", "call 6123456789."]
+        # KB09: any standalone 10-digit number, including ones starting 0-5.
+        masked = ["9876543210", "+919876543210", "+91 98765-43210", "call 6123456789.",
+                  "5876543210", "01234 56789"]
         for text in masked:
             with self.subTest(text=text):
                 self.assertIn("[PHONE_MASKED]", mask_phone_numbers(text))
                 self.assertNotRegex(mask_phone_numbers(text), "[0-9]{5}")
-        untouched = ["APT-012", "2026-10-26", "INR 1200", "5876543210", "98765432101",
-                     "98765  43210", "APT-0129876543210"]
+        untouched = ["APT-012", "2026-10-26", "26/10/2026", "INR 1200", "fee of INR 1,200",
+                     "98765432101", "123456789", "98765  43210", "APT-0129876543210"]
         for text in untouched:
             with self.subTest(text=text):
                 self.assertEqual(mask_phone_numbers(text), text)
