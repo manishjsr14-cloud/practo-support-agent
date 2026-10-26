@@ -4,14 +4,18 @@
 #   answer's question terms are supported by the retrieved text.
 # Task: Part 2, Task 10. Used by: memory.py (masking), pipeline.py, the runners and tests.
 # The patterns and phrases live in rules.py. The output check has two stages: Stage 1 is
-#   Part 1's unchanged similarity gate in rag.py; Stage 2 is the term check below.
+#   Part 1's unchanged similarity gate in rag.py; Stage 2 is the term check below. The
+#   emergency rule (added after the first run, because KB08 requires it) is separate.
 
 import re
 from functools import lru_cache
+from pathlib import Path
 
 from guardrail_calibration import CALIBRATE_ANSWER, CALIBRATE_REFUSE
-from rules import INJECTION_PHRASES, PHONE_MASK, PHONE_PATTERN
+from rules import EMERGENCY_PHRASES, INJECTION_PHRASES, PHONE_MASK, PHONE_PATTERN
 from schema import validate_response
+
+KB08_PATH = Path(__file__).resolve().parent / "kb" / "08_emergency_protocol.md"
 
 PHONE = re.compile(PHONE_PATTERN)
 RECORD_ID = re.compile(r"APT-[0-9]{3}")
@@ -41,6 +45,27 @@ def refusal(reason):
                   "an appointment by its id, such as APT-001.",
         "sources": [], "tools_used": [], "record_id": None, "escalation_recommended": None,
         "grounded": False, "refused": True, "refusal_reason": reason})
+
+
+# Find the emergency phrases a message contains (a separate rule, not groundedness).
+# Takes: the user's text. Returns: matching phrases from rules.py, as whole words, any case.
+def emergency_phrases(text):
+    normalized = " ".join(text.lower().split())
+    return [p for p in EMERGENCY_PHRASES if re.search(r"\b" + re.escape(p) + r"\b", normalized)]
+
+
+# Build the emergency reply, quoting KB08's direction word for word from kb/08.
+# Takes: the matched phrases. Returns: a validated CrewResponse (answered, not refused).
+# Why: KB08 requires directing an emergency to local emergency services; the reply only
+#   gives that direction and never diagnoses or names a medicine.
+def emergency_response(phrases):
+    sentences = re.split(r"(?<=\.)\s+", KB08_PATH.read_text(encoding="utf-8"))
+    direction = next(s.strip() for s in sentences if "local emergency services" in s)
+    return validate_response({
+        "answer": "This may be a medical emergency. Please contact local emergency services or go "
+                  f"to the nearest emergency department now.\n\nClinic policy (KB08): \"{direction}\"",
+        "sources": ["08_emergency_protocol"], "tools_used": [], "record_id": None,
+        "escalation_recommended": None, "grounded": True, "refused": False, "refusal_reason": None})
 
 
 # Strip one common English ending, keeping at least three letters.

@@ -2,8 +2,8 @@
 # What: the four fixed numbers behind the escalation score, kept apart from the code
 #   so the rules can be read and explained on their own.
 # Task: Part 2, Task 6. Used by: tools.py, run_task6.py and tests/test_task6.py.
-#   REFER_BACK_WORDS (Task 8) is used by memory.py; the Task 10 patterns at the end are
-#   used by guardrails.py.
+#   REFER_BACK_WORDS (Task 8) is used by memory.py; the Task 10 patterns and phrase lists
+#   at the end are used by guardrails.py.
 # Score = FOLLOW_UP_WEIGHT * (1 if follow-up needed else 0)
 #       + RECENCY_WEIGHT * (days_since_created / RECENCY_DAYS); it runs from 0.0 to 1.0.
 
@@ -38,3 +38,14 @@ PHONE_MASK = "[PHONE_MASKED]"
 INJECTION_PHRASES = ("ignore previous instructions", "ignore all previous instructions",
                      "disregard previous instructions", "forget your instructions",
                      "reveal your system prompt", "you are now", "developer mode")
+
+# Task 10, added after the first guardrail run because KB08 requires it: phrases that
+#   describe a medical emergency happening now (whole words, any case). A message with
+#   any of them gets KB08's emergency direction before any other check. A bare symptom
+#   such as "chest pain" is deliberately not listed, so "Can you diagnose my chest pain?"
+#   still goes through the normal checks; the cost is that "I have chest pain" alone is
+#   not treated as an emergency.
+EMERGENCY_PHRASES = ("severe chest pain", "crushing chest pain", "not breathing",
+                     "can't breathe", "cannot breathe", "collapsed", "unconscious",
+                     "bleeding heavily", "heavy bleeding", "seizure", "heart attack",
+                     "stroke", "overdose")
