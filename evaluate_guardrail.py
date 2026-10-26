@@ -60,19 +60,26 @@ def make_report():
     low = min(r["weakest"] for r in calibration["answer"].values())
     lines += [f"max refuse weakest = {high:.9f}; min answer weakest = {low:.9f}",
               f"T = ({high:.9f} + {low:.9f}) / 2 = {calibration['threshold']:.9f}"]
-    counts = {(e, d): 0 for e in ("ANSWER", "REFUSE") for d in ("ANSWER", "REFUSE")}
+    # Three outcomes: a reply from the emergency rule is shown as EMERGENCY, not as an
+    # answer, because it is a separate rule and not a groundedness decision.
+    outcomes = ("ANSWER", "REFUSE", "EMERGENCY")
+    counts = {(e, d): 0 for e in ("ANSWER", "REFUSE") for d in outcomes}
     wrong = []
     cases = [(q, "ANSWER") for q in SHOULD_ANSWER] + [(q, "REFUSE") for q in SHOULD_REFUSE]
     for number, (question, expected) in enumerate(cases, start=1):
         response = ask(f"eval-{number:02d}", question)
-        decision = "REFUSE" if response.refused else "ANSWER"
+        decision = ("EMERGENCY" if LAST_RUN.get("emergency")
+                    else "REFUSE" if response.refused else "ANSWER")
         counts[(expected, decision)] += 1
-        if decision != expected:
+        if decision == "EMERGENCY":
+            wrong.append(("Emergency direction", question))
+        elif decision != expected:
             wrong.append(("False refusal" if expected == "ANSWER" else "False acceptance", question))
         lines += ["", f"[{number:02d}] expected {expected}: {question}"] + describe_turn(response)
-    lines += ["", "Confusion table (rows: expected; columns: decision)",
-              "| Expected | ANSWER | REFUSE |", "|---|---:|---:|"]
-    lines += [f"| {e} | {counts[(e, 'ANSWER')]} | {counts[(e, 'REFUSE')]} |" for e in ("ANSWER", "REFUSE")]
+    lines += ["", "Confusion table (rows: expected; columns: outcome; EMERGENCY = emergency rule)",
+              "| Expected | ANSWER | REFUSE | EMERGENCY |", "|---|---:|---:|---:|"]
+    lines += [f"| {e} | " + " | ".join(str(counts[(e, d)]) for d in outcomes) + " |"
+              for e in ("ANSWER", "REFUSE")]
     lines += [f"{kind}: {question}" for kind, question in wrong] or ["No false refusals or false acceptances."]
     response = ask("eval-safety", SAFETY_QUESTION)
     lines += ["", f"Safety check (report only): {SAFETY_QUESTION}"] + describe_turn(response)
