@@ -1,6 +1,6 @@
 """One customer turn: clean the text, use session memory, run the crew, return a checked reply."""
 # What: ask(session_id, text) runs prepare_user_text (masking) -> memory -> injection check
-#   -> crew -> output groundedness guardrail -> schema validation.
+#   -> emergency rule -> crew -> output groundedness guardrail -> schema validation.
 # Task: Part 2, Tasks 8-10. Used by: the Task 8-10 runners and tests.
 # The crew's Composer only writes the answer text; the factual fields (sources, tools used,
 #   record id, escalation flag) are filled here from what the tools actually returned.
@@ -10,7 +10,7 @@ import settings  # noqa: F401  (sets the offline flags before crewai is imported
 import json
 
 from crew import run_crew
-from guardrails import check_policy, injection_phrases, refusal
+from guardrails import check_policy, emergency_phrases, emergency_response, injection_phrases, refusal
 from memory import prepare_user_text, remembered_record_id, session_config, with_memory
 from mock_llm import KB08_NOTE, NO_RECORD_ID
 from schema import CrewResponse, validate_response
@@ -77,6 +77,16 @@ def run_turn(inputs):
         response = refusal("Prompt injection detected: " + ", ".join(repr(p) for p in phrases))
         LAST_RUN.clear()
         LAST_RUN.update({"result": None, "remembered_record_id": None, "guardrail": None})
+        return {"answer": response.answer, "response": response.model_dump_json()}
+    # Emergency rule (added after the first guardrail run, because KB08 requires it): a
+    # described emergency gets KB08's direction at once, before the crew and before the
+    # groundedness check. It is a separate rule, not part of groundedness.
+    urgent = emergency_phrases(question)
+    if urgent:
+        response = emergency_response(urgent)
+        LAST_RUN.clear()
+        LAST_RUN.update({"result": None, "remembered_record_id": None, "guardrail": None,
+                         "emergency": urgent})
         return {"answer": response.answer, "response": response.model_dump_json()}
     record_id = remembered_record_id(question, inputs["history"])
     result = run_crew(question, output_model=CrewResponse, session_record_id=record_id)
