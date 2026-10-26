@@ -84,7 +84,7 @@ test_sessions_do_not_share_history (test_task8_9.Task8And9Tests.test_sessions_do
 test_sources_are_unique_parent_ids_in_order (test_task8_9.Task8And9Tests.test_sources_are_unique_parent_ids_in_order) ... ok
 
 ----------------------------------------------------------------------
-Ran 58 tests in 21.013s
+Ran 58 tests in 19.725s
 
 OK
 fixed_overlap: 39 chunks
