@@ -1,0 +1,161 @@
+Tasks 8-9: session memory and structured output (MockLLM, offline, zero API keys)
+
+========================================================================
+Transcript A (session_id='A')
+
+--- Turn A1: What is the status of APT-007?
+Remembered record id passed to the Lookup task: None
+Tool calls: rag_lookup=0; check_appointment_status=1
+Text sent to rag_lookup: (none)
+LLM calls: 4; all with agent and task: True
+CrewAI output_pydantic type before filling: CrewResponse
+Validated CrewResponse:
+{
+  "answer": "Retrieval result:\nNo policy question was asked.\n\nLookup result:\nrecord_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333\n\nNote: the escalation score is an administrative follow-up flag, not a medical assessment (KB08).",
+  "sources": [],
+  "tools_used": [
+    "check_appointment_status"
+  ],
+  "record_id": "APT-007",
+  "escalation_recommended": true,
+  "grounded": true,
+  "refused": false,
+  "refusal_reason": null
+}
+
+--- Turn A2: What is its fee?
+Remembered record id passed to the Lookup task: APT-007
+Tool calls: rag_lookup=1; check_appointment_status=1
+Text sent to rag_lookup: 'What is its fee?'
+LLM calls: 5; all with agent and task: True
+CrewAI output_pydantic type before filling: CrewResponse
+Validated CrewResponse:
+{
+  "answer": "Retrieval result:\nStandard consultation fees for new bookings are INR 500 for General Medicine, INR 1200 for Cardiology, INR 800 for Dermatology, INR 600 for Pediatrics, and INR 1000 for Orthopedics. Each fee covers one consultation with the booked clinician and excludes medicines, laboratory tests, procedures, and home-visit travel charges.\n\nA standard home visit costs INR 800 in total: INR 500 for the General Medicine consultation plus a separate INR 300 travel surcharge, with any eligible follow-up discount applied only to the consultation fee. The travel surcharge is refunded only when a cancellation qualifies under the cancellation policy and occurs before the clinician is dispatched; consultation-fee refunds follow that policy.\n\nFor an existing appointment, the consultation fee recorded in that booking is authoritative and may differ from the standard fee because of a documented adjustment. An eligible follow-up receives the discount described in the follow-up-discount policy, calculated from the specialty's standard consultation fee.\nSources: 03_consultation_fees, 12_home_visits, 03_consultation_fees\nTop-1 similarity: 0.489613533\n\nLookup result:\nrecord_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333\n\nNote: the escalation score is an administrative follow-up flag, not a medical assessment (KB08).",
+  "sources": [
+    "03_consultation_fees",
+    "12_home_visits"
+  ],
+  "tools_used": [
+    "rag_lookup",
+    "check_appointment_status"
+  ],
+  "record_id": "APT-007",
+  "escalation_recommended": true,
+  "grounded": true,
+  "refused": false,
+  "refusal_reason": null
+}
+
+--- Turn A3: What is the cancellation and rescheduling window?
+Remembered record id passed to the Lookup task: None
+Tool calls: rag_lookup=1; check_appointment_status=0
+Text sent to rag_lookup: 'What is the cancellation and rescheduling window?'
+LLM calls: 4; all with agent and task: True
+CrewAI output_pydantic type before filling: CrewResponse
+Validated CrewResponse:
+{
+  "answer": "Retrieval result:\nYou can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.\n\nRescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.\n\nThe support service explains these rules, but clinic staff must make booking changes and approve refunds.\nSources: 02_cancellation_rescheduling, 02_cancellation_rescheduling, 02_cancellation_rescheduling\nTop-1 similarity: 0.548343599\n\nLookup result:\nNo appointment record id was given in the question.",
+  "sources": [
+    "02_cancellation_rescheduling"
+  ],
+  "tools_used": [
+    "rag_lookup"
+  ],
+  "record_id": null,
+  "escalation_recommended": null,
+  "grounded": true,
+  "refused": false,
+  "refusal_reason": null
+}
+
+========================================================================
+Transcript B (session_id='B')
+
+--- Turn B1: What is its fee?
+Remembered record id passed to the Lookup task: None
+Tool calls: rag_lookup=1; check_appointment_status=0
+Text sent to rag_lookup: 'What is its fee?'
+LLM calls: 4; all with agent and task: True
+CrewAI output_pydantic type before filling: CrewResponse
+Validated CrewResponse:
+{
+  "answer": "Retrieval result:\nStandard consultation fees for new bookings are INR 500 for General Medicine, INR 1200 for Cardiology, INR 800 for Dermatology, INR 600 for Pediatrics, and INR 1000 for Orthopedics. Each fee covers one consultation with the booked clinician and excludes medicines, laboratory tests, procedures, and home-visit travel charges.\n\nA standard home visit costs INR 800 in total: INR 500 for the General Medicine consultation plus a separate INR 300 travel surcharge, with any eligible follow-up discount applied only to the consultation fee. The travel surcharge is refunded only when a cancellation qualifies under the cancellation policy and occurs before the clinician is dispatched; consultation-fee refunds follow that policy.\n\nFor an existing appointment, the consultation fee recorded in that booking is authoritative and may differ from the standard fee because of a documented adjustment. An eligible follow-up receives the discount described in the follow-up-discount policy, calculated from the specialty's standard consultation fee.\nSources: 03_consultation_fees, 12_home_visits, 03_consultation_fees\nTop-1 similarity: 0.489613533\n\nLookup result:\nNo appointment record id was given in the question.",
+  "sources": [
+    "03_consultation_fees",
+    "12_home_visits"
+  ],
+  "tools_used": [
+    "rag_lookup"
+  ],
+  "record_id": null,
+  "escalation_recommended": null,
+  "grounded": true,
+  "refused": false,
+  "refusal_reason": null
+}
+
+Stored history for session 'A':
+  [human] What is the status of APT-007?
+  [ai] Retrieval result:
+No policy question was asked.
+
+Lookup result:
+record_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333
+
+Note: the escalation score is an administrative follow-up flag, not a medical assessment (KB08).
+  [human] What is its fee?
+  [ai] Retrieval result:
+Standard consultation fees for new bookings are INR 500 for General Medicine, INR 1200 for Cardiology, INR 800 for Dermatology, INR 600 for Pediatrics, and INR 1000 for Orthopedics. Each fee covers one consultation with the booked clinician and excludes medicines, laboratory tests, procedures, and home-visit travel charges.
+
+A standard home visit costs INR 800 in total: INR 500 for the General Medicine consultation plus a separate INR 300 travel surcharge, with any eligible follow-up discount applied only to the consultation fee. The travel surcharge is refunded only when a cancellation qualifies under the cancellation policy and occurs before the clinician is dispatched; consultation-fee refunds follow that policy.
+
+For an existing appointment, the consultation fee recorded in that booking is authoritative and may differ from the standard fee because of a documented adjustment. An eligible follow-up receives the discount described in the follow-up-discount policy, calculated from the specialty's standard consultation fee.
+Sources: 03_consultation_fees, 12_home_visits, 03_consultation_fees
+Top-1 similarity: 0.489613533
+
+Lookup result:
+record_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333
+
+Note: the escalation score is an administrative follow-up flag, not a medical assessment (KB08).
+  [human] What is the cancellation and rescheduling window?
+  [ai] Retrieval result:
+You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+
+Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.
+
+The support service explains these rules, but clinic staff must make booking changes and approve refunds.
+Sources: 02_cancellation_rescheduling, 02_cancellation_rescheduling, 02_cancellation_rescheduling
+Top-1 similarity: 0.548343599
+
+Lookup result:
+No appointment record id was given in the question.
+
+Stored history for session 'B':
+  [human] What is its fee?
+  [ai] Retrieval result:
+Standard consultation fees for new bookings are INR 500 for General Medicine, INR 1200 for Cardiology, INR 800 for Dermatology, INR 600 for Pediatrics, and INR 1000 for Orthopedics. Each fee covers one consultation with the booked clinician and excludes medicines, laboratory tests, procedures, and home-visit travel charges.
+
+A standard home visit costs INR 800 in total: INR 500 for the General Medicine consultation plus a separate INR 300 travel surcharge, with any eligible follow-up discount applied only to the consultation fee. The travel surcharge is refunded only when a cancellation qualifies under the cancellation policy and occurs before the clinician is dispatched; consultation-fee refunds follow that policy.
+
+For an existing appointment, the consultation fee recorded in that booking is authoritative and may differ from the standard fee because of a documented adjustment. An eligible follow-up receives the discount described in the follow-up-discount policy, calculated from the specialty's standard consultation fee.
+Sources: 03_consultation_fees, 12_home_visits, 03_consultation_fees
+Top-1 similarity: 0.489613533
+
+Lookup result:
+No appointment record id was given in the question.
+
+Invalid payload:
+{'answer': 'Your fee is INR 500.', 'sources': '03_consultation_fees', 'tools_used': [], 'record_id': None, 'escalation_recommended': None, 'grounded': True, 'refused': False, 'urgency': 'high'}
+Rejected:
+Reply does not match CrewResponse; invalid fields: sources, refusal_reason, urgency
+3 validation errors for CrewResponse
+sources
+  Input should be a valid list [type=list_type, input_value='03_consultation_fees', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/list_type
+refusal_reason
+  Field required [type=missing, input_value={'answer': 'Your fee is I...alse, 'urgency': 'high'}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.12/v/missing
+urgency
+  Extra inputs are not permitted [type=extra_forbidden, input_value='high', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/extra_forbidden
