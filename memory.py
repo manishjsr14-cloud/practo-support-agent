@@ -1,7 +1,7 @@
 """Per-session conversation memory with LangChain, kept in this process only."""
 # What: one InMemoryChatMessageHistory per session id, wrapped around a turn function with
 #   RunnableWithMessageHistory, plus the rule for reusing a record id from earlier turns.
-# Task: Part 2, Task 8. Used by: pipeline.py, run_task8_9.py and tests/test_task8_9.py.
+# Task: Part 2, Task 8 (Task 10 added masking). Used by: pipeline.py, the runners and tests.
 # Facts read from the installed langchain-core 1.6.10: the session id is passed per call as
 #   config={"configurable": {"session_id": ...}}; the history is injected into the input
 #   under history_messages_key before the turn runs, and afterwards the input text and the
@@ -15,6 +15,7 @@ from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableLambda
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
+from guardrails import mask_phone_numbers
 from rules import REFER_BACK_WORDS
 
 # Session id -> that session's history. Nothing is written to disk.
@@ -25,11 +26,11 @@ RECORD_ID = re.compile(r"APT-[0-9]{3}")
 REFER_BACK = re.compile(r"\b(?:" + "|".join(re.escape(word) for word in REFER_BACK_WORDS) + r")\b", re.I)
 
 
-# The single entry point for all user text (Task 10 will add phone masking here).
-# Takes: the raw user text. Returns: the text to use and store; unchanged for now.
-# Why: history only ever stores what this returns, so masking will cover history too.
+# The single entry point for all user text; Task 10 added phone masking here (KB09).
+# Takes: the raw user text. Returns: the text to use and store, with phone numbers masked.
+# Why: history only ever stores what this returns, so a raw number never reaches it.
 def prepare_user_text(text):
-    return text
+    return mask_phone_numbers(text)
 
 
 # Return the history for one session, creating an empty one the first time.

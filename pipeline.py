@@ -1,6 +1,7 @@
 """One customer turn: clean the text, use session memory, run the crew, return a checked reply."""
-# What: ask(session_id, text) runs prepare_user_text -> memory -> crew -> CrewResponse.
-# Task: Part 2, Tasks 8-9. Used by: run_task8_9.py and tests/test_task8_9.py.
+# What: ask(session_id, text) runs prepare_user_text (masking) -> memory -> injection check
+#   -> crew -> CrewResponse.
+# Task: Part 2, Tasks 8-10. Used by: the Task 8-10 runners and tests.
 # The crew's Composer only writes the answer text; the factual fields (sources, tools used,
 #   record id, escalation flag) are filled here from what the tools actually returned.
 
@@ -9,6 +10,7 @@ import settings  # noqa: F401  (sets the offline flags before crewai is imported
 import json
 
 from crew import run_crew
+from guardrails import injection_phrases, refusal
 from memory import prepare_user_text, remembered_record_id, session_config, with_memory
 from schema import CrewResponse, validate_response
 from tools import recommend_escalation
@@ -51,6 +53,14 @@ def build_response(result):
 # Returns: {"answer": text to store, "response": the reply as JSON}.
 def run_turn(inputs):
     question = inputs["question"]
+    # Input guardrail (Task 10): an injection attempt is refused before the crew runs, so
+    # no agent or tool ever sees it. The turn is still stored, with the refusal as answer.
+    phrases = injection_phrases(question)
+    if phrases:
+        response = refusal("Prompt injection detected: " + ", ".join(repr(p) for p in phrases))
+        LAST_RUN.clear()
+        LAST_RUN.update({"result": None, "remembered_record_id": None})
+        return {"answer": response.answer, "response": response.model_dump_json()}
     record_id = remembered_record_id(question, inputs["history"])
     result = run_crew(question, output_model=CrewResponse, session_record_id=record_id)
     response = build_response(result)
