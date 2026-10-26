@@ -74,7 +74,8 @@ def recommend_escalation(score: float) -> bool:
 
 # Answer a policy question with Part 1's retrieval (Task 7).
 # Takes: a question. Returns: the quoted answer text (or the fallback), the source parent
-#   ids and the top-1 cosine similarity.
+#   ids, the top-1 cosine similarity, the threshold and whether it fell back (Task 10's
+#   guardrail reports those last two).
 # Why: it reuses rag.answer() unchanged, with the sentence collection and the threshold
 #   saved in outputs/calibration.json, so the crew sees exactly what Part 1 retrieves.
 def rag_lookup(query: str) -> dict:
@@ -82,4 +83,5 @@ def rag_lookup(query: str) -> dict:
     import rag
     result = rag.answer(query, strategy="sentence")
     return {"answer": result["answer"], "source_ids": result["source_ids"],
-            "similarity": result["similarity"]}
+            "similarity": result["similarity"], "threshold": result["threshold"],
+            "fallback": result["fallback"]}
