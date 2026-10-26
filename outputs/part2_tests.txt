@@ -1,6 +1,6 @@
 Interpreter: C:\Projects\practo-support-agent\.venv\Scripts\python.exe
 Versions: numpy=2.5.4; transformers=5.19.0; sentence-transformers=6.1.0; chromadb=1.5.9; crewai=1.15.28
-C:\Projects\practo-support-agent\pipeline.py:90: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
+C:\Projects\practo-support-agent\pipeline.py:100: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
   CHAT = with_memory(run_turn)
 test_answers_are_verbatim_retrieved_context (test_part1.Part1Tests.test_answers_are_verbatim_retrieved_context) ... ok
 test_chunk_counts_and_parent_metadata (test_part1.Part1Tests.test_chunk_counts_and_parent_metadata) ... ok
@@ -14,9 +14,12 @@ test_out_of_scope_question_uses_fallback (test_part1.Part1Tests.test_out_of_scop
 test_printed_top_k_matches_search_top_k (test_part1.Part1Tests.test_printed_top_k_matches_search_top_k) ... ok
 test_saved_calibration_separates_observed_clusters (test_part1.Part1Tests.test_saved_calibration_separates_observed_clusters) ... ok
 test_search_returns_plain_top_three (test_part1.Part1Tests.test_search_returns_plain_top_three) ... ok
-test_history_never_stores_the_raw_number (test_task10.InputGuardrailTests.test_history_never_stores_the_raw_number) ... C:\Projects\practo-support-agent\memory.py:40: LangChainDeprecationWarning: The class `InMemoryChatMessageHistory` was deprecated in LangChain 1.6.4 and will be removed in 2.0.0 See the short-term memory documentation for recommended alternatives: https://docs.langchain.com/oss/python/langchain/short-term-memory
+test_pre_registered_set (test_task10.EmergencyRuleTests.test_pre_registered_set) ... ok
+test_reply_quotes_kb08_without_advice (test_task10.EmergencyRuleTests.test_reply_quotes_kb08_without_advice) ... ok
+test_rule_runs_before_the_crew (test_task10.EmergencyRuleTests.test_rule_runs_before_the_crew) ... C:\Projects\practo-support-agent\memory.py:40: LangChainDeprecationWarning: The class `InMemoryChatMessageHistory` was deprecated in LangChain 1.6.4 and will be removed in 2.0.0 See the short-term memory documentation for recommended alternatives: https://docs.langchain.com/oss/python/langchain/short-term-memory
   STORE[session_id] = InMemoryChatMessageHistory()
-C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:425: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+ok
+test_history_never_stores_the_raw_number (test_task10.InputGuardrailTests.test_history_never_stores_the_raw_number) ... C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:425: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
   if self.function_calling_llm and not isinstance(
 C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:433: DeprecationWarning: deprecated
   if self.allow_code_execution:
@@ -81,7 +84,7 @@ test_sessions_do_not_share_history (test_task8_9.Task8And9Tests.test_sessions_do
 test_sources_are_unique_parent_ids_in_order (test_task8_9.Task8And9Tests.test_sources_are_unique_parent_ids_in_order) ... ok
 
 ----------------------------------------------------------------------
-Ran 55 tests in 19.745s
+Ran 58 tests in 20.048s
 
 OK
 fixed_overlap: 39 chunks

@@ -128,5 +128,36 @@ class OutputGuardrailTests(unittest.TestCase):
         self.assertIn("No appointment was found", missing[0].refusal_reason)
 
 
+class EmergencyRuleTests(unittest.TestCase):
+    # The pre-registered set: every SHOULD_TRIGGER message fires, no SHOULD_NOT_TRIGGER does.
+    def test_pre_registered_set(self):
+        from emergency_queries import SHOULD_NOT_TRIGGER, SHOULD_TRIGGER
+        for text in SHOULD_TRIGGER:
+            self.assertTrue(guardrails.emergency_phrases(text), text)
+        for text in SHOULD_NOT_TRIGGER:
+            self.assertEqual(guardrails.emergency_phrases(text), [], text)
+
+    # The reply quotes KB08 word for word, cites KB08, and neither diagnoses nor names a medicine.
+    def test_reply_quotes_kb08_without_advice(self):
+        response = guardrails.emergency_response(["seizure"])
+        kb08 = guardrails.KB08_PATH.read_text(encoding="utf-8")
+        quote = response.answer.split('"')[1]
+        self.assertIn(quote, kb08)
+        self.assertIn("local emergency services or the nearest emergency department", quote)
+        self.assertEqual(response.sources, ["08_emergency_protocol"])
+        self.assertTrue(response.grounded and not response.refused)
+        preface = response.answer.split('"')[0].lower()
+        for word in ("diagnos", "medicine", "medication", "tablet", "dose"):
+            self.assertNotIn(word, preface)
+
+    # Through the pipeline the rule runs before the crew, so no tool or groundedness check runs.
+    def test_rule_runs_before_the_crew(self):
+        with mock.patch.object(pipeline, "run_crew", side_effect=AssertionError("crew ran")):
+            response = pipeline.ask("t10-emergency", "My father collapsed and is not breathing")
+        self.assertEqual(response.tools_used, [])
+        self.assertIsNone(pipeline.LAST_RUN["guardrail"])
+        self.assertEqual(pipeline.LAST_RUN["emergency"], ["not breathing", "collapsed"])
+
+
 if __name__ == "__main__":
     unittest.main()
