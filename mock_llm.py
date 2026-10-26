@@ -1,7 +1,8 @@
 """Deterministic offline stand-in for an LLM that speaks CrewAI's ReAct text format."""
 # What: a fake "language model" for CrewAI. It never calls an API; it decides with plain
 #   rules whether to call the agent's tool, and returns the tool's result word for word.
-# Task: Part 2, Task 7. Used by: crew.py, and tests/test_task7.py (which tests it directly).
+# Task: Part 2, Task 7; Task 8-9 added the session record id and the JSON reply.
+#   Used by: crew.py, and the tests (tests/test_task7.py tests it directly).
 # Facts it relies on were read from the installed crewai 1.15.28 source and a captured run:
 #   tool results come back appended to the model's own assistant message as
 #   "\nObservation: <result>", and call() receives tools=None on the ReAct path.
@@ -44,6 +45,14 @@ def customer_question(task):
     return match.group(1).strip() if match else ""
 
 
+# Read the record id memory.py remembered for this session, if the task carries one (Task 8).
+# Takes: a CrewAI task. Returns: an id such as "APT-007", or None.
+# Why: only the Lookup task gets this line, so only the Lookup Agent can use it.
+def session_record_id(task):
+    match = re.search(r"^Session record id:[ \t]*(APT-[0-9]{3})[ \t]*$", task.description or "", re.M)
+    return match.group(1) if match else None
+
+
 # Find the result of the model's own most recent tool call, if that call really ran.
 # Takes: the message list and the agent's own tool names. Returns: the result text or None.
 # Why: the ReAct template itself contains "Observation: the result of the action", so
@@ -72,13 +81,15 @@ def find_tool_result(messages, tool_names):
 
 
 # Choose a tool's arguments from its declared argument schema, never from its name.
-# Takes: a CrewAI tool and the question. Returns: (arguments dict, None) to call the tool,
-#   or (None, reason) when the question gives the tool nothing to work on (pitfall 2).
-def tool_arguments(tool, question):
+# Takes: a CrewAI tool, the question and an optional remembered session id. Returns:
+#   (arguments dict, None) to call the tool, or (None, reason) when the question gives
+#   the tool nothing to work on (pitfall 2).
+def tool_arguments(tool, question, session_id=None):
     fields = tool.args_schema.model_fields
     if "record_id" in fields:
-        # An appointment tool needs an id such as APT-007 written in the question.
-        found = RECORD_ID.findall(question)
+        # An appointment tool needs an id such as APT-007 written in the question, or
+        # failing that, the id remembered from earlier in this session.
+        found = RECORD_ID.findall(question) or ([session_id] if session_id else [])
         return ({"record_id": found[0]}, None) if found else (None, NO_RECORD_ID)
     if "query" in fields:
         # Only the policy clause goes to retrieval: the record part belongs to the Lookup
@@ -118,6 +129,17 @@ def compose(task):
     return "\n\n".join(parts)
 
 
+# Wrap the composer's draft as the JSON CrewAI checks against the task's output model.
+# Takes: the draft text. Returns: a JSON string with the draft as "answer".
+# Why: CrewAI only accepts the model when the reply is JSON; plain text would make it call
+#   the LLM again without an agent. The mock fills no facts: sources, record id and
+#   escalation stay empty for pipeline.py to fill from the tools' own results.
+def json_reply(draft):
+    return json.dumps({"answer": draft, "sources": [], "tools_used": [], "record_id": None,
+                       "escalation_recommended": None, "grounded": False, "refused": False,
+                       "refusal_reason": None})
+
+
 class MockLLM(BaseLLM):
     """Rule-based LLM replacement used under MOCK_LLM."""
 
@@ -136,7 +158,8 @@ class MockLLM(BaseLLM):
     def call(self, messages, tools=None, callbacks=None, available_functions=None,
              from_task=None, from_agent=None, response_model=None):
         self.call_log.append({"agent": getattr(from_agent, "role", None),
-                              "task": getattr(from_task, "name", None), "tools": tools})
+                              "task": getattr(from_task, "name", None), "tools": tools,
+                              "response_model": getattr(response_model, "__name__", None)})
         # CrewAI's forced last call after too many steps has no agent or task: refuse
         # plainly instead of crashing or inventing an answer.
         if from_agent is None or from_task is None:
@@ -144,9 +167,11 @@ class MockLLM(BaseLLM):
         if isinstance(messages, str):
             messages = [{"role": "user", "content": messages}]
         agent_tools = list(from_agent.tools or [])
-        # The composer has no tools: it only joins earlier results.
+        # The composer has no tools: it only joins earlier results. When CrewAI asks for a
+        # structured reply (response_model set), the same draft goes out as JSON.
         if not agent_tools:
-            return final(compose(from_task))
+            draft = compose(from_task)
+            return json_reply(draft) if response_model is not None else final(draft)
         # If this agent's tool already ran, its result is the answer, word for word.
         result = find_tool_result(messages, {tool.name for tool in agent_tools})
         if result is not None:
@@ -155,7 +180,7 @@ class MockLLM(BaseLLM):
         question = customer_question(from_task)
         reasons = []
         for tool in agent_tools:
-            arguments, reason = tool_arguments(tool, question)
+            arguments, reason = tool_arguments(tool, question, session_record_id(from_task))
             if arguments is not None:
                 return (f"Thought: The question needs {tool.name}.\nAction: {tool.name}\n"
                         f"Action Input: {json.dumps(arguments)}")
