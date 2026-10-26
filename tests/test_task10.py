@@ -1,6 +1,7 @@
-"""Check the Task 10 guardrails, starting with the input guardrails."""
+"""Check the Task 10 input and output guardrails."""
 # What: phone masking (what is and is not masked, and that history and the crew only see
-#   the masked text) and prompt-injection blocking before any tool runs.
+#   the masked text), prompt-injection blocking before any tool runs, and the two-stage
+#   output check on deliberate cases (never on the pre-registered test sets' results).
 # Task: Part 2, Task 10 tests. Used by: "python -m unittest discover -s tests".
 
 import settings  # noqa: F401  (must come before any crewai import)
@@ -8,6 +9,7 @@ import settings  # noqa: F401  (must come before any crewai import)
 import unittest
 from unittest import mock
 
+import guardrails
 import memory
 import pipeline
 from guardrail_queries import INJECTION_ATTACK, PII_EXAMPLE
@@ -59,6 +61,71 @@ class InputGuardrailTests(unittest.TestCase):
     def test_ordinary_questions_are_not_flagged(self):
         for text in ("What is the cancellation and rescheduling window?", "What is its fee?"):
             self.assertEqual(injection_phrases(text), [])
+
+
+class OutputGuardrailTests(unittest.TestCase):
+    @classmethod
+    # Run the deliberate output cases once through the full pipeline.
+    def setUpClass(cls):
+        cls.turns = {}
+        for name, question in {
+                "stage1": "Give me a recipe for chocolate brownies.",
+                "stage2": "What are the clinic's opening hours on Sundays?",
+                "mixed": "What is the status of APT-007 and what are the clinic's opening hours on Sundays?",
+                "record": "What is the status of APT-007?",
+                "missing": "What is the status of APT-999?",
+                "policy": "What is the cancellation and rescheduling window?"}.items():
+            cls.turns[name] = (pipeline.ask(f"t10-{name}", question), dict(pipeline.LAST_RUN))
+
+    # T comes only from guardrail_calibration.py: the midpoint of the two groups, which
+    # must not overlap.
+    def test_threshold_is_the_calibration_midpoint(self):
+        from guardrail_calibration import CALIBRATE_ANSWER, CALIBRATE_REFUSE
+        calibration = guardrails.groundedness_threshold()
+        self.assertEqual(list(calibration["refuse"]), CALIBRATE_REFUSE)
+        self.assertEqual(list(calibration["answer"]), CALIBRATE_ANSWER)
+        high = max(r["weakest"] for r in calibration["refuse"].values())
+        low = min(r["weakest"] for r in calibration["answer"].values())
+        self.assertLess(high, low)
+        self.assertEqual(calibration["threshold"], (high + low) / 2)
+
+    # Terms drop stop words and record ids; a word present in the chunks scores 1.0.
+    def test_terms_and_text_match(self):
+        self.assertEqual(guardrails.question_terms("What is the fee for APT-007 on Sundays?"), ["fee", "sundays"])
+        report = guardrails.support_report("What is the cancellation and rescheduling window?")
+        self.assertEqual([score for _, score, _ in report["terms"]], [1.0, 1.0, 1.0])
+
+    # Stage 1 (similarity) and Stage 2 (terms) each refuse with their own reason.
+    def test_stage1_and_stage2_refusals(self):
+        stage1, stage2 = self.turns["stage1"][0], self.turns["stage2"][0]
+        self.assertTrue(stage1.refused and stage1.refusal_reason.startswith("Stage 1"))
+        self.assertTrue(stage2.refused and stage2.refusal_reason.startswith("Stage 2"))
+        self.assertIn("'opening'", stage2.refusal_reason)
+        self.assertEqual((stage1.sources, stage2.sources), ([], []))
+
+    # A supported policy answer is grounded and cites its sources.
+    def test_supported_policy_answer_is_grounded(self):
+        response = self.turns["policy"][0]
+        self.assertTrue(response.grounded)
+        self.assertFalse(response.refused)
+        self.assertEqual(response.sources, ["02_cancellation_rescheduling"])
+
+    # Mixed question: the record is kept and the answer names the unanswered policy part.
+    def test_mixed_question_names_the_unanswered_part(self):
+        response = self.turns["mixed"][0]
+        self.assertEqual(response.record_id, "APT-007")
+        self.assertFalse(response.refused)
+        self.assertIn("Not answered: the policy part 'what are the clinic's opening hours on Sundays?'",
+                      response.answer)
+        self.assertNotIn("Retrieval result:", response.answer)
+
+    # Record-only questions skip the policy check: grounded if found, refused if not.
+    def test_record_only_questions(self):
+        found, missing = self.turns["record"], self.turns["missing"]
+        self.assertIsNone(found[1]["guardrail"])
+        self.assertTrue(found[0].grounded and not found[0].refused)
+        self.assertTrue(missing[0].refused)
+        self.assertIn("No appointment was found", missing[0].refusal_reason)
 
 
 if __name__ == "__main__":
