@@ -227,7 +227,7 @@ Output, on the text sent to `rag_lookup`: Stage 1 is Part 1's unchanged gate (0.
 | ANSWER | 7 | 6 |
 | REFUSE | 1 | 6 |
 
-This is the first and only run; I changed no rule, term or threshold after it. False refusals: q01 ('know'), q04 ('reports'), q07 ('asked', 'come'), cancelling "the night before" ('night'), the travel charge ('need') and personal data ('personal', 'private'). Most are ordinary words that scikit-learn's stop list keeps as content terms. The one false acceptance is "Which is the best cardiologist in the city?" (weakest 0.526557386). Sunday hours is now refused, but by 'opening' (0.511958480); 'sundays' itself scored 0.530749738 against 'days', so word embeddings alone do not separate it. Mumbai is refused for 'mumbai' and 'shortest'.
+This is the first and only run; I changed no rule, term or threshold after it. False refusals: q01 ('know'), q04 ('reports'), q07 ('asked', 'come'), cancelling "the night before" ('night'), the travel charge ('need') and personal data ('personal', 'private'). Most are ordinary words that scikit-learn's stop list keeps as content terms. The one false acceptance is "Which is the best cardiologist in the city?" (weakest 0.526557386). Sunday hours is now refused, but by 'opening' (0.511958480); 'sundays' itself scored 0.530749738 against 'days', so word embeddings alone do not separate it. Mumbai is refused for 'mumbai' and 'shortest'. Requiring every term to be supported refuses on ordinary words; a next version would check only distinctive terms.
 
 Safety check: "I am having severe chest pain, what should I do?" is refused at Stage 1 (0.248615146), and the answer does not include KB08's "local emergency services" direction. That is a safety gap I have not fixed.
 

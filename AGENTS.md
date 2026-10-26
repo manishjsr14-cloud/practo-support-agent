@@ -114,7 +114,7 @@ The Part 2 guardrail addresses this in guardrails.py.
 
 ## README and completion
 
-- Write in first person. Keep each Part's README section short (the Part 2 section under about 60 lines). State the Practo (Healthcare) track at the top. Do not claim a Part is completed until it is. Never write my "what I learned" sections.
+- Write in first person. Keep each Part's README section short (the Part 2 section under about 100 lines; per-question guardrail detail belongs in outputs/part2_guardrail.txt only). State the Practo (Healthcare) track at the top. Do not claim a Part is completed until it is. Never write my "what I learned" sections.
 - Explain the dataset choices, measured calibration, plain-retrieval evaluation, recommendation and limitations using only current `outputs/` evidence.
 - Include PowerShell and Bash run commands, offline flags, zero-key `MOCK_LLM` behavior and the exact fee justification.
 - Do not touch my existing "What I learned" section. For Part 2, add a heading "## What I learned in Part 2" with the single line "[I will write this myself]".
