@@ -41,11 +41,13 @@ INJECTION_PHRASES = ("ignore previous instructions", "ignore all previous instru
 
 # Task 10, added after the first guardrail run because KB08 requires it: phrases that
 #   describe a medical emergency happening now (whole words, any case). A message with
-#   any of them gets KB08's emergency direction before any other check. A bare symptom
-#   such as "chest pain" is deliberately not listed, so "Can you diagnose my chest pain?"
-#   still goes through the normal checks; the cost is that "I have chest pain" alone is
-#   not treated as an emergency.
+#   any of them gets KB08's emergency direction before any other check.
+# Change after the run (logged in the README): "chest pain" was added on its own. The
+#   first list left it out so that "Can you diagnose my chest pain?" would go through the
+#   normal checks, which meant "I have chest pain" alone was not treated as an emergency.
+#   Missing a real emergency is worse than giving an unneeded emergency direction, and
+#   KB08 forbids diagnosis but requires the direction, so any chest pain now gets it.
 EMERGENCY_PHRASES = ("severe chest pain", "crushing chest pain", "not breathing",
                      "can't breathe", "cannot breathe", "collapsed", "unconscious",
                      "bleeding heavily", "heavy bleeding", "seizure", "heart attack",
-                     "stroke", "overdose")
+                     "stroke", "overdose", "chest pain")
