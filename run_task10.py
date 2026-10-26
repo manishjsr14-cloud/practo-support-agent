@@ -22,6 +22,8 @@ CASES = (
      "What is the status of APT-007 and what are the clinic's opening hours on Sundays?"),
     ("Record-only: record found", "demo-record", "What is the status of APT-007?"),
     ("Record-only: no such record", "demo-missing", "What is the status of APT-999?"),
+    ("Emergency rule (added after the first run, because KB08 requires it)", "demo-emergency",
+     "My father collapsed and is not breathing"),
 )
 
 

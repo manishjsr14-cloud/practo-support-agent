@@ -84,3 +84,13 @@ question: 'What is the status of APT-999?'
     
     Lookup result:
     error: No appointment was found for this ID.; record_id: APT-999
+
+=== Output: Emergency rule (added after the first run, because KB08 requires it)
+question: 'My father collapsed and is not breathing'
+  decision: ANSWER; grounded=True; reason: (none)
+  emergency rule fired on: 'not breathing', 'collapsed'; crew and groundedness check did not run
+  record_id=None; sources=['08_emergency_protocol']
+  answer:
+    This may be a medical emergency. Please contact local emergency services or go to the nearest emergency department now.
+    
+    Clinic policy (KB08): "If you report a medical emergency, support must direct you to local emergency services or the nearest emergency department without asking you to wait for a routine appointment or chatbot review."
