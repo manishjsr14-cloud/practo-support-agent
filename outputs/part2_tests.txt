@@ -1,5 +1,7 @@
 Interpreter: C:\Projects\practo-support-agent\.venv\Scripts\python.exe
 Versions: numpy=2.5.4; transformers=5.19.0; sentence-transformers=6.1.0; chromadb=1.5.9; crewai=1.15.28
+C:\Projects\practo-support-agent\pipeline.py:63: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
+  CHAT = with_memory(run_turn)
 test_answers_are_verbatim_retrieved_context (test_part1.Part1Tests.test_answers_are_verbatim_retrieved_context) ... ok
 test_chunk_counts_and_parent_metadata (test_part1.Part1Tests.test_chunk_counts_and_parent_metadata) ... ok
 test_dataset_coverage_and_follow_up_band (test_part1.Part1Tests.test_dataset_coverage_and_follow_up_band) ... ok
@@ -52,9 +54,23 @@ test_retrieval_query_excludes_the_record_id (test_task7.Task7Tests.test_retrieva
 test_storage_dir_and_flags_after_importing_crew (test_task7.Task7Tests.test_storage_dir_and_flags_after_importing_crew) ... ok
 test_template_observation_alone_is_not_a_result (test_task7.Task7Tests.test_template_observation_alone_is_not_a_result) ... ok
 test_tool_counts_for_the_demo_questions (test_task7.Task7Tests.test_tool_counts_for_the_demo_questions) ... ok
+C:\Projects\practo-support-agent\memory.py:39: LangChainDeprecationWarning: The class `InMemoryChatMessageHistory` was deprecated in LangChain 1.6.4 and will be removed in 2.0.0 See the short-term memory documentation for recommended alternatives: https://docs.langchain.com/oss/python/langchain/short-term-memory
+  STORE[session_id] = InMemoryChatMessageHistory()
+test_crew_returns_a_crew_response_before_filling (test_task8_9.Task8And9Tests.test_crew_returns_a_crew_response_before_filling) ... ok
+test_escalation_comes_from_recommend_escalation (test_task8_9.Task8And9Tests.test_escalation_comes_from_recommend_escalation) ... ok
+test_every_response_validates_and_invalid_payload_raises (test_task8_9.Task8And9Tests.test_every_response_validates_and_invalid_payload_raises) ... ok
+test_follow_up_uses_the_remembered_record_id (test_task8_9.Task8And9Tests.test_follow_up_uses_the_remembered_record_id) ... ok
+test_history_stores_prepared_text (test_task8_9.Task8And9Tests.test_history_stores_prepared_text) ... ok
+test_new_session_finds_no_record_id (test_task8_9.Task8And9Tests.test_new_session_finds_no_record_id) ... ok
+test_no_llm_call_without_agent_or_task (test_task8_9.Task8And9Tests.test_no_llm_call_without_agent_or_task) ... ok
+test_policy_turn_does_not_look_up_the_remembered_record (test_task8_9.Task8And9Tests.test_policy_turn_does_not_look_up_the_remembered_record) ... ok
+test_refer_back_rule (test_task8_9.Task8And9Tests.test_refer_back_rule) ... ok
+test_session_record_id_never_reaches_retrieval (test_task8_9.Task8And9Tests.test_session_record_id_never_reaches_retrieval) ... ok
+test_sessions_do_not_share_history (test_task8_9.Task8And9Tests.test_sessions_do_not_share_history) ... ok
+test_sources_are_unique_parent_ids_in_order (test_task8_9.Task8And9Tests.test_sources_are_unique_parent_ids_in_order) ... ok
 
 ----------------------------------------------------------------------
-Ran 32 tests in 21.547s
+Ran 44 tests in 15.309s
 
 OK
 fixed_overlap: 39 chunks
