@@ -1,4 +1,4 @@
-# Practo (Healthcare) — Part 1 complete, Part 2 in progress
+# Practo (Healthcare) — Parts 1 and 2 complete, Part 3 in progress
 
 I built a local policy retriever with deterministic `MOCK_LLM` answers and zero API keys. My dataset has 50 fabricated appointments, including 13 follow-ups (26.00%), and my handwritten KB has 12 policies.
 
