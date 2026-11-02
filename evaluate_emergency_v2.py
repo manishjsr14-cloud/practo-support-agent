@@ -2,12 +2,15 @@
 # What: prints the calibration scores and T_EMERGENCY, then v1 and v2 decisions with the
 #   best similarity for the v2 test set, the Part 2 emergency set, the 20 Part 2 guardrail
 #   questions and the 15 Part 3 eval questions, and lists every question v2 changes.
-# Task: Part 3 extension (emergency detection v2). Used by: run by hand; it writes
-#   outputs/part3_emergency_v2.txt. It calls the detector only; no earlier output is rerun.
+# Task: Part 3 extension (emergency detection v2). Used by: run by hand. Default: the
+#   detector comparison into outputs/part3_emergency_v2.txt (the original v2 measurement).
+#   "--two-level": every question through the full pipeline, with its reply type, into
+#   outputs/part3_emergency_v2_two_level.txt. No earlier output is rerun.
 
 import settings  # noqa: F401  (sets the offline flags before crewai is imported)
 
 from pathlib import Path
+import sys
 
 import emergency_queries
 import emergency_v2_queries
@@ -71,11 +74,47 @@ def make_report():
     return "\n".join(lines) + "\n"
 
 
-# Save the report to outputs/part3_emergency_v2.txt and print it.
+# Name the reply type of the latest pipeline turn (two-level response).
+# Takes: the CrewResponse and pipeline.LAST_RUN. Returns: "emergency only",
+#   "answer + note", "refuse + note", "normal (answer)" or "normal (refuse)".
+def reply_type(response, last_run):
+    if last_run.get("emergency"):
+        return "emergency only"
+    kind = "refuse" if response.refused else "answer"
+    return f"{kind} + note" if last_run.get("emergency_note") else f"normal ({kind})"
+
+
+# Run every question through the full pipeline with the two-level response.
+# Takes: nothing. Returns: the report text for outputs/part3_emergency_v2_two_level.txt.
+# Why: the two levels were added after the first v2 run; detection, T_EMERGENCY, the
+#   descriptions and the phrase list are unchanged, so only the reply type can differ.
+def two_level_report():
+    from pipeline import LAST_RUN, ask
+    lines = ["Emergency detection v2, two-level response (added after the first v2 run):",
+             "  phrase match -> emergency reply only; meaning-only match -> normal reply + KB08 note",
+             f"T_EMERGENCY = {emergency_threshold()['threshold']:.9f} (unchanged)"]
+    number = 0
+    for title, cases in SETS:
+        counts = {}
+        lines += ["", f"=== {title}", "| reply type | detected by | best similarity | question |", "|---|---|---:|---|"]
+        for question, _ in cases:
+            number += 1
+            found = detect(question)
+            response = ask(f"two-level-{number:02d}", question)
+            kind = reply_type(response, LAST_RUN)
+            counts[kind] = counts.get(kind, 0) + 1
+            lines.append(f"| {kind} | {found['by'] or 'none'} | {found['similarity']:.9f} | {question} |")
+        lines.append("Totals: " + "; ".join(f"{kind} {n}" for kind, n in sorted(counts.items())))
+    return "\n".join(lines) + "\n"
+
+
+# Save the report and print it. Default: the original detector comparison to
+#   outputs/part3_emergency_v2.txt; "--two-level": the pipeline run to a new file.
 def main():
-    report = make_report()
-    target = Path(__file__).resolve().parent / "outputs" / "part3_emergency_v2.txt"
-    target.write_text(report, encoding="utf-8")
+    two_level = "--two-level" in sys.argv[1:]
+    report = two_level_report() if two_level else make_report()
+    name = "part3_emergency_v2_two_level.txt" if two_level else "part3_emergency_v2.txt"
+    (Path(__file__).resolve().parent / "outputs" / name).write_text(report, encoding="utf-8")
     print(report, end="")
 
 
