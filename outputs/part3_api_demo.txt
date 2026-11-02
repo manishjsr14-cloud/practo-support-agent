@@ -1,0 +1,37 @@
+Part 3: API demo with FastAPI's TestClient (same app as uvicorn api:app)
+
+GET /health -> {'status': 'ok'}
+
+POST /ask 'What is the cancellation and rescheduling window?'
+  refused=False; grounded=True; record_id=None; sources=['02_cancellation_rescheduling']; reason: (none)
+  answer starts: 'Retrieval result:'
+
+POST /ask 'my number is 98765 43210, check APT-012'
+  refused=False; grounded=True; record_id=APT-012; sources=[]; reason: (none)
+  answer starts: 'Retrieval result:'
+
+POST /add-document (one sentence) -> 422 An uploaded document must have two to five sentences.
+POST /add-document (parking, 2 sentences) -> 200 {'doc_id': 'parking', 'chunks_added': 1}
+
+POST /ask parking question, include_uploads=False
+  refused=True; grounded=False; record_id=None; sources=[]; reason: Stage 2: not supported by the retrieved policy text: 'parking' (support below T=0.517920896)
+  answer starts: "I can't answer 'How much does parking at the clinic cost?' from the clinic policies."
+
+POST /ask parking question, include_uploads=True
+  refused=False; grounded=True; record_id=None; sources=['upload:parking', '03_consultation_fees', '07_telemedicine']; reason: (none)
+  answer starts: 'Retrieval result:'
+
+WS /ws/chat, client 1 (memory: 'its' reuses APT-007, then disconnects mid-conversation)
+  > What is the status of APT-007?
+  refused=False; grounded=True; record_id=APT-007; sources=[]; reason: (none)
+    answer starts: 'Retrieval result:'
+  > What is its fee?
+  refused=False; grounded=True; record_id=APT-007; sources=['03_consultation_fees', '12_home_visits']; reason: (none)
+    answer starts: 'Retrieval result:'
+  client 1 closed; server caught WebSocketDisconnect
+WS /ws/chat, client 2 after the disconnect
+  refused=False; grounded=True; record_id=APT-012; sources=[]; reason: (none)
+    answer starts: 'Retrieval result:'
+
+Log lines written: 10 (copied to outputs/part3_log_sample.jsonl)
+Raw number '98765' in the log: False
