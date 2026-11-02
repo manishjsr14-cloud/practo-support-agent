@@ -51,3 +51,19 @@ EMERGENCY_PHRASES = ("severe chest pain", "crushing chest pain", "not breathing"
                      "can't breathe", "cannot breathe", "collapsed", "unconscious",
                      "bleeding heavily", "heavy bleeding", "seizure", "heart attack",
                      "stroke", "overdose", "chest pain")
+
+# Emergency detection v2 (Part 3 extension): plain descriptions of emergency types. A
+#   message whose meaning (MiniLM embedding) is close enough to one of them gets KB08's
+#   emergency direction, even when no phrase above matches. Written before any calibration
+#   score was computed and never edited afterwards; none copies a calibration or test
+#   sentence. Description 8 was changed before commit to stay clear of a test question.
+EMERGENCY_DESCRIPTIONS = (
+    "A person has collapsed and does not respond.",
+    "Someone is struggling to breathe or cannot breathe at all.",
+    "Severe chest pain or pressure, a possible heart attack.",
+    "Heavy bleeding that cannot be stopped.",
+    "Sudden weakness, numbness or confusion that could be a stroke.",
+    "A seizure or convulsions happening right now.",
+    "Poisoning or a drug or medicine overdose.",
+    "A serious injury from an accident.",
+)
