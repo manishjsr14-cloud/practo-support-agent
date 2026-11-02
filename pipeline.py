@@ -10,7 +10,8 @@ import settings  # noqa: F401  (sets the offline flags before crewai is imported
 import json
 
 from crew import run_crew
-from guardrails import check_policy, emergency_phrases, emergency_response, injection_phrases, refusal
+from emergency import detect
+from guardrails import check_policy, emergency_response, injection_phrases, refusal
 from memory import prepare_user_text, remembered_record_id, session_config, with_memory
 from mock_llm import KB08_NOTE, NO_RECORD_ID
 from schema import CrewResponse, validate_response
@@ -83,12 +84,16 @@ def run_turn(inputs):
     # Emergency rule (added after the first guardrail run, because KB08 requires it): a
     # described emergency gets KB08's direction at once, before the crew and before the
     # groundedness check. It is a separate rule, not part of groundedness.
-    urgent = emergency_phrases(question)
-    if urgent:
+    # v2 (Part 3 extension): it also fires when the message is close in meaning to an
+    #   emergency description (emergency.detect); "emergency" lists the matched phrases, or
+    #   the closest description and its similarity when only the meaning matched.
+    found = detect(question)
+    if found["v2"]:
+        urgent = found["phrases"] or [f"meaning: {found['description']!r} ({found['similarity']:.9f})"]
         response = emergency_response(urgent)
         LAST_RUN.clear()
         LAST_RUN.update({"result": None, "remembered_record_id": None, "guardrail": None,
-                         "emergency": urgent})
+                         "emergency": urgent, "emergency_detail": found})
         return {"answer": response.answer, "response": response.model_dump_json()}
     record_id = remembered_record_id(question, inputs["history"])
     include_uploads = inputs.get("include_uploads", False)
