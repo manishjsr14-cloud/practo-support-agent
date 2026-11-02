@@ -78,10 +78,16 @@ def recommend_escalation(score: float) -> bool:
 #   guardrail reports those last two).
 # Why: it reuses rag.answer() unchanged, with the sentence collection and the threshold
 #   saved in outputs/calibration.json, so the crew sees exactly what Part 1 retrieves.
-def rag_lookup(query: str) -> dict:
+#   Part 3: include_uploads=True searches the sentence collection and the uploads combined
+#   (uploads.combined_answer); the default False is exactly the Part 1-2 call.
+def rag_lookup(query: str, include_uploads: bool = False) -> dict:
     # Imported here so that Task 6 code importing tools.py never loads the retrieval code.
     import rag
-    result = rag.answer(query, strategy="sentence")
+    if include_uploads:
+        import uploads
+        result = uploads.combined_answer(query)
+    else:
+        result = rag.answer(query, strategy="sentence")
     return {"answer": result["answer"], "source_ids": result["source_ids"],
             "similarity": result["similarity"], "threshold": result["threshold"],
             "fallback": result["fallback"]}

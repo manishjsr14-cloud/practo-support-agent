@@ -104,9 +104,16 @@ def _embed(word):
 # Rule: a term whose stem appears in the chunks scores 1.0 ("text match"); otherwise its
 #   score is the highest word-embedding cosine with any chunk word, which lets paraphrases
 #   such as "price" for "fee" count. "weakest" is the lowest score (None if no terms).
-def support_report(query):
+# Part 3: include_uploads=True checks against the combined top-3 (uploads.combined_search);
+#   the rule, the terms and T are unchanged.
+def support_report(query, include_uploads=False):
     import rag
-    chunks = " ".join(hit["text"] for hit in rag.search(query, "sentence"))
+    if include_uploads:
+        import uploads
+        hits = uploads.combined_search(query)
+    else:
+        hits = rag.search(query, "sentence")
+    chunks = " ".join(hit["text"] for hit in hits)
     words = sorted(set(re.findall(r"[a-z]+", chunks.lower())))
     stems = {stem(word) for word in words}
     terms = []
@@ -135,9 +142,10 @@ def groundedness_threshold():
 
 
 # Decide whether a policy answer is grounded (Stage 1, then Stage 2).
-# Takes: the text sent to rag_lookup and its result. Returns: (ok, reason, report).
-def check_policy(query, rag_result):
-    report = support_report(query)
+# Takes: the text sent to rag_lookup, its result and whether uploads were searched.
+# Returns: (ok, reason, report).
+def check_policy(query, rag_result, include_uploads=False):
+    report = support_report(query, include_uploads)
     if rag_result["fallback"]:
         return False, (f"Stage 1: top-1 similarity {rag_result['similarity']:.9f} is below "
                        f"the threshold {rag_result['threshold']:.9f}"), report

@@ -2,8 +2,8 @@
 # What: a Retrieval Agent (policy text), a Lookup Agent (appointment record) and a
 #   Response Composer (joins both), all driven by the offline MockLLM. Each tool call is
 #   counted, so saved outputs can prove which tools ran for each question.
-# Task: Part 2, Task 7; Task 8-9 added the optional session record id and output model.
-#   Used by: run_task7.py, pipeline.py and the tests.
+# Task: Part 2, Task 7; Task 8-9 added the optional session record id and output model;
+#   Part 3 added include_uploads. Used by: run_task7.py, pipeline.py and the tests.
 # It wraps rag_lookup() and check_appointment_status() from tools.py as CrewAI tools.
 
 import settings  # noqa: F401  (sets the offline flags before crewai is imported)
@@ -24,16 +24,25 @@ RAG_RESULTS = []
 LOOKUPS = []
 
 
-@tool("rag_lookup")
-def rag_lookup_tool(query: str) -> str:
-    """Quote the clinic policy text that best matches a policy question."""
-    # Count first, then return the retrieved text, its sources and its top-1 similarity.
-    COUNTS["rag_lookup"] += 1
-    RAG_QUERIES.append(query)
-    result = rag_lookup(query)
-    RAG_RESULTS.append(result)
-    return (f"{result['answer']}\nSources: {', '.join(result['source_ids']) or '(none)'}\n"
-            f"Top-1 similarity: {result['similarity']:.9f}")
+# Build the rag_lookup tool for one retrieval setting (Part 3).
+# Takes: include_uploads, passed as a parameter and never through the question text.
+# Returns: a CrewAI tool with the same name, description and output as Task 7's.
+def make_rag_tool(include_uploads=False):
+    @tool("rag_lookup")
+    def rag_lookup_tool(query: str) -> str:
+        """Quote the clinic policy text that best matches a policy question."""
+        # Count first, then return the retrieved text, its sources and its top-1 similarity.
+        COUNTS["rag_lookup"] += 1
+        RAG_QUERIES.append(query)
+        result = rag_lookup(query, include_uploads)
+        RAG_RESULTS.append(result)
+        return (f"{result['answer']}\nSources: {', '.join(result['source_ids']) or '(none)'}\n"
+                f"Top-1 similarity: {result['similarity']:.9f}")
+    return rag_lookup_tool
+
+
+# The default tool (policies only), exactly as in Task 7.
+rag_lookup_tool = make_rag_tool(False)
 
 
 @tool("check_appointment_status")
@@ -50,12 +59,14 @@ def check_appointment_status_tool(record_id: str) -> str:
 # Takes: the LLM, an optional Pydantic model for the final task's output (Task 9) and an
 #   optional record id remembered from this session (Task 8). Returns: a sequential Crew.
 # Why: each agent gets only the tool it needs, so the Lookup Agent alone can read records.
-#   With neither option the crew is exactly Task 7's.
-def build_crew(llm, output_model=None, session_record_id=None):
+#   With neither option the crew is exactly Task 7's. include_uploads (Part 3) chooses the
+#   Retrieval Agent's tool.
+def build_crew(llm, output_model=None, session_record_id=None, include_uploads=False):
     # Same safe settings for every agent: no delegation, no tool-result cache (so the
     # counters see every real call), and few steps so a mistake fails quickly.
     common = {"llm": llm, "allow_delegation": False, "cache": False, "max_iter": 3, "verbose": False}
-    retrieval = Agent(role="Retrieval Agent", tools=[rag_lookup_tool],
+    retrieval_tool = make_rag_tool(True) if include_uploads else rag_lookup_tool
+    retrieval = Agent(role="Retrieval Agent", tools=[retrieval_tool],
                       goal="Quote the clinic policy that answers the customer's policy question.",
                       backstory="You report retrieved policy text only.", **common)
     lookup = Agent(role="Lookup Agent", tools=[check_appointment_status_tool],
@@ -85,16 +96,16 @@ def build_crew(llm, output_model=None, session_record_id=None):
 
 
 # Run the crew for one question with fresh counters and a fresh MockLLM.
-# Takes: the customer's question, plus build_crew()'s two optional settings. Returns: each
+# Takes: the customer's question, plus build_crew()'s three optional settings. Returns: each
 #   task's output, the final draft, the tool counts, the text sent to rag_lookup, the tool
 #   results, CrewAI's Pydantic output, the MockLLM's call log and the crew (for tests).
-def run_crew(question, output_model=None, session_record_id=None):
+def run_crew(question, output_model=None, session_record_id=None, include_uploads=False):
     for name in COUNTS:
         COUNTS[name] = 0
     for log in (RAG_QUERIES, RAG_RESULTS, LOOKUPS):
         log.clear()
     llm = MockLLM(model="mock-llm")
-    crew = build_crew(llm, output_model, session_record_id)
+    crew = build_crew(llm, output_model, session_record_id, include_uploads)
     result = crew.kickoff(inputs={"question": question})
     return {"question": question, "outputs": {task.name: task.output.raw for task in crew.tasks},
             "draft": result.raw, "counts": dict(COUNTS), "rag_queries": list(RAG_QUERIES),

@@ -25,7 +25,8 @@ LAST_RUN = {}
 #   raises ValueError if the crew gave no CrewResponse or the reply does not validate.
 # Why: facts come from the tools' own results; escalation comes only from
 #   tools.recommend_escalation(); grounded/refused come from the guardrail (Task 10).
-def build_response(result):
+#   include_uploads (Part 3) makes Stage 2 check against the combined retrieved text.
+def build_response(result, include_uploads=False):
     draft = result["pydantic"]
     if not isinstance(draft, CrewResponse):
         raise ValueError(f"The crew did not return a CrewResponse (got {type(draft).__name__}).")
@@ -41,7 +42,7 @@ def build_response(result):
     if rag is not None:
         # Output guardrail on the policy part: Stage 1 (similarity), then Stage 2 (terms).
         query = result["rag_queries"][-1]
-        ok, reason, report = check_policy(query, rag)
+        ok, reason, report = check_policy(query, rag, include_uploads)
         check = {"query": query, "ok": ok, "reason": reason, "report": report}
         if ok:
             # KB parent ids (not chunks): each once, in first-seen retrieval order.
@@ -66,7 +67,8 @@ def build_response(result):
 
 
 # The work done inside memory for one turn.
-# Takes: {"question": prepared text, "history": this session's earlier messages}.
+# Takes: {"question": prepared text, "history": this session's earlier messages,
+#   "include_uploads": Part 3's retrieval setting (only "question" is stored in history)}.
 # Returns: {"answer": text to store, "response": the reply as JSON}.
 def run_turn(inputs):
     question = inputs["question"]
@@ -89,8 +91,10 @@ def run_turn(inputs):
                          "emergency": urgent})
         return {"answer": response.answer, "response": response.model_dump_json()}
     record_id = remembered_record_id(question, inputs["history"])
-    result = run_crew(question, output_model=CrewResponse, session_record_id=record_id)
-    response, check = build_response(result)
+    include_uploads = inputs.get("include_uploads", False)
+    result = run_crew(question, output_model=CrewResponse, session_record_id=record_id,
+                      include_uploads=include_uploads)
+    response, check = build_response(result, include_uploads)
     LAST_RUN.clear()
     LAST_RUN.update({"result": result, "remembered_record_id": record_id, "guardrail": check})
     return {"answer": response.answer, "response": response.model_dump_json()}
@@ -101,8 +105,10 @@ CHAT = with_memory(run_turn)
 
 
 # Answer one customer message within one session.
-# Takes: a session id and the raw text. Returns: a validated CrewResponse.
-def ask(session_id, text):
+# Takes: a session id, the raw text and (Part 3) whether to search uploads too; the default
+#   uses only the 12 policies. Returns: a validated CrewResponse.
+def ask(session_id, text, include_uploads=False):
     question = prepare_user_text(text)
-    output = CHAT.invoke({"question": question}, config=session_config(session_id))
+    output = CHAT.invoke({"question": question, "include_uploads": include_uploads},
+                         config=session_config(session_id))
     return validate_response(json.loads(output["response"]))
