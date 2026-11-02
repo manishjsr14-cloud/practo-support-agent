@@ -54,13 +54,18 @@ def emergency_phrases(text):
     return [p for p in EMERGENCY_PHRASES if re.search(r"\b" + re.escape(p) + r"\b", normalized)]
 
 
+# Return KB08's emergency-direction sentence, word for word from kb/08.
+def kb08_direction():
+    sentences = re.split(r"(?<=\.)\s+", KB08_PATH.read_text(encoding="utf-8"))
+    return next(s.strip() for s in sentences if "local emergency services" in s)
+
+
 # Build the emergency reply, quoting KB08's direction word for word from kb/08.
 # Takes: the matched phrases. Returns: a validated CrewResponse (answered, not refused).
 # Why: KB08 requires directing an emergency to local emergency services; the reply only
 #   gives that direction and never diagnoses or names a medicine.
 def emergency_response(phrases):
-    sentences = re.split(r"(?<=\.)\s+", KB08_PATH.read_text(encoding="utf-8"))
-    direction = next(s.strip() for s in sentences if "local emergency services" in s)
+    direction = kb08_direction()
     return validate_response({
         "answer": "This may be a medical emergency. Please contact local emergency services or go "
                   f"to the nearest emergency department now.\n\nClinic policy (KB08): \"{direction}\"",
