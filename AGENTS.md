@@ -7,6 +7,7 @@
 - A short plain-English comment above every function.
 - No fingerprints, no stale-index detection, no deployment.json, no custom reranker, no retrieval-policy versioning, no socket blocking. The index step deletes and rebuilds both collections each run.
 - Retrieval is PLAIN top-3 vector search from one collection. Nothing else.
+- Exception (Part 3): with include_uploads=true, /ask takes plain top-3 across the sentence collection and practo_uploads combined; the default stays one collection.
 - Offline, deterministic, MOCK_LLM, zero API keys. Set HF_HUB_OFFLINE=1, ANONYMIZED_TELEMETRY=False, CREWAI_DISABLE_TELEMETRY=true, OTEL_SDK_DISABLED=true and CREWAI_TRACING_ENABLED=false in code before importing frameworks. Set CREWAI_STORAGE_DIR to the absolute path of the repository's `.crewai/` folder.
 - Keep: all-MiniLM-L6-v2; fixed chunks of 320 characters with 80 overlap; sentence chunks of 2 sentences; cosine similarity = 1 - distance; collection.upsert(); the parent document id in every chunk's metadata.
 - Add .gitignore for .venv, __pycache__, the Chroma folder and `.crewai/` so CrewAI's storage files are not committed.
@@ -14,7 +15,7 @@
 
 ## Scope and working rules
 
-- Work only on Part 2, Tasks 6–10. Do not implement Parts 3–4.
+- Work only on Part 3, Tasks 11-13.
 - Keep supplied `dataset.py`, `data/appointments.json` and `kb/` byte-identical. Their inherited formatting and length are exceptions to the new-file simplicity rules. `requirements.txt` was updated in the dependency migration; the original is kept as `requirements-part1.txt`.
 - Never rewrite the handwritten KB, hand-edit generated records, change dataset choices or silently relax dependency pins.
 - Show planned files before coding. Use readable code and ordinary comments so I can explain it.
