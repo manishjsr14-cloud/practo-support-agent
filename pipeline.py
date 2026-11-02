@@ -86,7 +86,7 @@ def run_turn(inputs):
     # groundedness check. It is a separate rule, not part of groundedness.
     # v2 (Part 3 extension) has two levels (added after the first v2 run; detection unchanged):
     #   a phrase match gets the emergency reply only, as before; a meaning-only match runs
-    #   the normal pipeline and then appends the emergency note and KB08's direction.
+    #   the normal pipeline and then puts the emergency note and KB08's direction at the top.
     found = detect(question)
     if found["phrases"]:
         response = emergency_response(found["phrases"])

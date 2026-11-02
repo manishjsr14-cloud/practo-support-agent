@@ -60,12 +60,13 @@ NOTE = ("If this is an emergency, contact local emergency services or go to the 
         "emergency department now.")
 
 
-# Append the emergency note and KB08's direction to a normal reply (meaning-only match).
-# Takes: a CrewResponse. Returns: a validated copy with the note appended to the answer and
-#   "08_emergency_protocol" added to sources; refused, grounded and the reason are unchanged.
+# Put the emergency note and KB08's direction at the top of a normal reply (meaning-only match).
+# Takes: a CrewResponse. Returns: a validated copy with the note before the answer or refusal
+#   and "08_emergency_protocol" added to sources; refused, grounded and the reason are unchanged.
+# Why at the top: someone in an emergency must see the direction first, not after policy text.
 def with_emergency_note(response):
     data = response.model_dump()
-    data["answer"] += f"\n\n{NOTE}\nClinic policy (KB08): \"{kb08_direction()}\""
+    data["answer"] = f"{NOTE}\nClinic policy (KB08): \"{kb08_direction()}\"\n\n{data['answer']}"
     if "08_emergency_protocol" not in data["sources"]:
         data["sources"].append("08_emergency_protocol")
     return validate_response(data)

@@ -50,7 +50,7 @@ class EmergencyV2Tests(unittest.TestCase):
             self.assertEqual(found["by"], "phrase")
 
     # Two levels (added after the first v2 run): a meaning-only match runs the normal pipeline
-    # and appends the note and KB08's direction, adding 08_emergency_protocol to sources.
+    # and puts the note and KB08's direction at the top, adding 08_emergency_protocol to sources.
     def test_meaning_only_match_gets_normal_reply_plus_note(self):
         text = "My child has stopped breathing, what do I do?"
         found = emergency.detect(text)
@@ -58,8 +58,8 @@ class EmergencyV2Tests(unittest.TestCase):
         response = pipeline.ask("v2-meaning", text)
         self.assertIsNotNone(pipeline.LAST_RUN["result"])
         self.assertNotIn("emergency", pipeline.LAST_RUN)
-        self.assertTrue(response.answer.endswith(f"{emergency.NOTE}\nClinic policy (KB08): "
-                                                 f"\"{emergency.kb08_direction()}\""))
+        self.assertTrue(response.answer.startswith(f"{emergency.NOTE}\nClinic policy (KB08): "
+                                                   f"\"{emergency.kb08_direction()}\"\n\n"))
         self.assertIn("08_emergency_protocol", response.sources)
 
     # A phrase match still gets the emergency reply only, before the crew.
