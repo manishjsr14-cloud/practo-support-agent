@@ -10,7 +10,9 @@ POST /ask 'my number is 98765 43210, check APT-012'
   refused=False; grounded=True; record_id=APT-012; sources=[]; reason: (none)
   answer starts: 'Retrieval result:'
 
+POST /add-document without X-Admin-Key -> 403 Missing or wrong X-Admin-Key.
 POST /add-document (one sentence) -> 422 An uploaded document must have two to five sentences.
+POST /add-document (injection phrase) -> 422 Upload refused: prompt-injection phrase 'ignore previous instructions'
 POST /add-document (parking, 2 sentences) -> 200 {'doc_id': 'parking', 'chunks_added': 1}
 
 POST /ask parking question, include_uploads=False
@@ -32,6 +34,12 @@ WS /ws/chat, client 1 (memory: 'its' reuses APT-007, then disconnects mid-conver
 WS /ws/chat, client 2 after the disconnect
   refused=False; grounded=True; record_id=APT-012; sources=[]; reason: (none)
     answer starts: 'Retrieval result:'
+  > (not JSON) -> {'error': 'Send one JSON object per message.'}
+  > parking question with include_uploads=true on the same connection
+  refused=False; grounded=True; record_id=None; sources=['upload:parking', '03_consultation_fees', '07_telemedicine']; reason: (none)
+    answer starts: 'Retrieval result:'
 
-Log lines written: 10 (copied to outputs/part3_log_sample.jsonl)
+Log lines written: 14 (copied to outputs/part3_log_sample.jsonl)
 Raw number '98765' in the log: False
+Admin key in the log: False
+Rejected upload text in the log: False
