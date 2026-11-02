@@ -246,4 +246,33 @@ PowerShell: `.\.venv\Scripts\python.exe evaluate_guardrail.py` and `run_task10.p
 
 ## What I learned in Part 2
 
-[I will write this myself]
+Each agent should receive only the part of a question it is responsible for. My first combined
+question, "What is the status of APT-007 and can I reschedule it?", went to retrieval in full.
+The record part pulled the search off-topic: the top-1 similarity was only 0.327 (just above my
+0.319 threshold) and two of the three quoted chunks were about lab results and prescription
+refills. When the Retrieval Agent sent only "can I reschedule it?", the score rose to 0.501 and
+all three chunks came from the cancellation and rescheduling policy, including the sentence about
+available slots and keeping the paid fee.
+
+Frameworks can make calls you don't see. When I gave the Response Composer a Pydantic output
+schema, CrewAI passed that schema to my mock LLM. If the mock replied with plain text, CrewAI
+quietly called the LLM again up to three times, without an agent or task, to convert it, and the
+run failed. I only found this by reading CrewAI's source and capturing a real run before writing
+code. My mock now returns JSON directly, and the facts in each reply (sources, record id,
+escalation) are filled in by my own code, never by the mock.
+
+My guardrail table showed the trade-off between catching unsupported questions and refusing
+legitimate ones. On the first, untuned run it refused 6 of the 7 questions it should refuse, but
+it also refused 6 of the 13 it should answer, because requiring every word to be supported meant
+one ordinary word such as "know", "need" or "night" was enough to refuse. "Sundays" also got past
+the word comparison: its embedding was close to "days" (0.531), and the Sunday-hours question was
+only refused because of the word "opening". For a healthcare agent, refusing too often is the
+safer mistake, but a better version would check only the distinctive words in a question.
+
+I changed the emergency rule after the first run because my own policy (KB08) requires it.
+"I am having severe chest pain, what should I do?" got a plain refusal with no direction to
+emergency services. I added a separate emergency rule, wrote its test questions before the code,
+and later added "chest pain" on its own, because missing a real emergency is worse than giving an
+unneeded emergency direction. I logged both changes and kept the original first-run table, so
+anyone can see what was measured first, what changed afterwards and why. Hiding the change would
+have made my results look better than they really were.
