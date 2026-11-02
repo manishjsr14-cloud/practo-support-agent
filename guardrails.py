@@ -81,9 +81,12 @@ def stem(word):
 # Takes: question text. Returns: lower-case words, in order and without repeats, after
 #   dropping record ids, digits, single letters and scikit-learn's built-in English stop
 #   words ("what", "can", "the", ...). No hand-picked keyword list is used.
+# The "[PHONE_MASKED]" placeholder is removed first (fix made before the Part 3 run): it is
+#   system-generated, not user content, so "phone" and "masked" are never checked.
 def question_terms(text):
     from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
-    words = re.findall(r"[a-z]+", RECORD_ID.sub(" ", text).lower())
+    text = RECORD_ID.sub(" ", text.replace(PHONE_MASK, " "))
+    words = re.findall(r"[a-z]+", text.lower())
     return list(dict.fromkeys(w for w in words if len(w) > 1 and w not in ENGLISH_STOP_WORDS))
 
 
