@@ -10,7 +10,7 @@ from functools import lru_cache
 import re
 
 import rag
-from guardrails import mask_phone_numbers
+from guardrails import injection_phrases, mask_phone_numbers
 
 COLLECTION = "practo_uploads"
 
@@ -26,12 +26,16 @@ def collection():
                                            configuration={"hnsw": {"space": "cosine", "num_threads": 1}})
 
 
-# Mask phone numbers, check the sentence count and store an uploaded document.
+# Check for injection, mask phone numbers, check the sentence count and store a document.
 # Takes: a document id and its text. Returns: the number of chunks added.
-# Raises ValueError for a KB topic name as id or a text outside 2-5 sentences.
+# Raises ValueError for a KB topic name as id, a text containing a prompt-injection phrase
+#   (the same check as for questions; added in part3-hardening) or a text outside 2-5 sentences.
 def add_document(doc_id, text):
     if doc_id in rag.REQUIRED_TOPICS:
         raise ValueError("doc_id must not reuse a policy name from kb/.")
+    phrases = injection_phrases(text)
+    if phrases:
+        raise ValueError("Upload refused: prompt-injection phrase " + ", ".join(repr(p) for p in phrases))
     body = " ".join(mask_phone_numbers(text).split())
     # Count sentences the same way rag.validate_kb does.
     if not 2 <= len(re.split(r"(?<=[.!?])\s+", body)) <= 5:

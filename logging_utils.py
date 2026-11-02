@@ -20,8 +20,9 @@ LOG_PATH = Path(__file__).resolve().parent / "logs" / "requests.jsonl"
 # Takes: the endpoint, session id, raw question (or None), the start time from
 #   time.perf_counter(), the status (HTTP code or "ok"/"error") and the CrewResponse (or None).
 # Returns: the entry dict that was written. path=None means the current LOG_PATH (read at
-#   call time, so tests and the demo can point it at another file).
-def log_request(endpoint, session_id, question, started, status, response=None, path=None):
+#   call time, so tests and the demo can point it at another file). doc_id (uploads only)
+#   adds a "doc_id" field; an upload's text is never logged.
+def log_request(endpoint, session_id, question, started, status, response=None, path=None, doc_id=None):
     path = path or LOG_PATH
     entry = {"trace_id": str(uuid.uuid4()),
              "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -31,6 +32,8 @@ def log_request(endpoint, session_id, question, started, status, response=None, 
              "status": status,
              "refused": None if response is None else response.refused,
              "grounded": None if response is None else response.grounded}
+    if doc_id is not None:
+        entry["doc_id"] = doc_id
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as log:
         log.write(json.dumps(entry) + "\n")
