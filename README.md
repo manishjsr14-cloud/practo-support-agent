@@ -1,4 +1,4 @@
-# Practo (Healthcare) — Parts 1 and 2 complete, Part 3 built on branch part3 (not merged)
+# Practo (Healthcare) — Parts 1-3 complete, Part 4 in progress
 
 I built a local policy retriever with deterministic `MOCK_LLM` answers and zero API keys. My dataset has 50 fabricated appointments, including 13 follow-ups (26.00%), and my handwritten KB has 12 policies.
 
@@ -284,6 +284,7 @@ I put the Part 2 pipeline behind FastAPI, logged every request as masked JSON Li
 PowerShell:
 
 ```powershell
+$env:PRACTO_ADMIN_KEY = "<choose your own secret>"   # only needed for /add-document
 .\.venv\Scripts\python.exe -m uvicorn api:app --port 8000
 .\.venv\Scripts\python.exe run_part3_demo.py
 .\.venv\Scripts\python.exe run_part3_eval.py
@@ -293,6 +294,7 @@ PowerShell:
 Bash (not verified):
 
 ```bash
+export PRACTO_ADMIN_KEY="<choose your own secret>"   # only needed for /add-document
 .venv/bin/python -m uvicorn api:app --port 8000
 .venv/bin/python run_part3_demo.py
 .venv/bin/python run_part3_eval.py
@@ -304,23 +306,25 @@ I verified a live server on Windows: after starting uvicorn as above, a POST /as
 ### API
 
 - `POST /ask` `{session_id, question, include_uploads=false}` returns the validated `CrewResponse` from `pipeline.ask`, so every Part 2 guardrail applies unchanged.
-- `POST /add-document` `{doc_id, text}` masks phone numbers, requires 2–5 sentences and returns `{doc_id, chunks_added}`; one sentence gives HTTP 422.
+- `POST /add-document` `{doc_id, text}` needs an `X-Admin-Key` header equal to the server's `PRACTO_ADMIN_KEY`. With no key set, uploads are disabled (HTTP 403), and a missing or wrong key also gets 403. It refuses text containing a prompt-injection phrase (the same check as for questions) and anything outside 2–5 sentences with HTTP 422. It masks phone numbers and returns `{doc_id, chunks_added}`. The key is compared in constant time and is never printed, logged or committed; the tests and the demo each use a random key that exists only in their own process.
 - `GET /health` returns `{"status": "ok"}`.
-- `WS /ws/chat` takes `{session_id, question}` per message and returns a `CrewResponse`; it catches `WebSocketDisconnect`, so one client leaving does not stop the server.
+- `WS /ws/chat` takes `{session_id, question, include_uploads=false}` per message and returns a `CrewResponse`. A bad message, such as non-JSON or wrong types, gets `{"error": ...}` and the connection stays open. It catches `WebSocketDisconnect`, so one client leaving does not stop the server.
 
 I keep uploads in a separate in-memory ChromaDB collection, `practo_uploads` (never `kb/`, never `chroma/`, nothing persisted). Default answers therefore use only my 12 policies, and every Part 1–2 measurement stays valid. Only `include_uploads=true` takes plain top-3 across the sentence collection and the uploads combined, with the same saved threshold and the same Stage 2 check. With no uploads, it gives exactly the default result. In the demo, the parking question is refused for 'parking' by default and answered from `upload:parking` with uploads included. Requests are served one at a time, because a lock guards the pipeline's per-run state. No endpoint calls `check_appointment_status`; only the crew's Lookup Agent can. [API demo](outputs/part3_api_demo.txt).
+
+Protected now: only a holder of the admin key can upload; uploaded text cannot carry a listed injection phrase or a raw phone number; uploads never change default answers; and the log keeps only doc_id and status for uploads. Still not protected: an uploaded document can contain false policy content, which `include_uploads=true` would quote as an answer; there are no user accounts, so anyone who can reach `/ask` can ask, and a session ID does not prove identity (KB09).
 
 Fix made before the Part 3 run: Stage 2 now ignores the system-generated `[PHONE_MASKED]` placeholder when picking terms. No other rule, phrase or threshold changed, and every `outputs/part2_*.txt` stayed byte-identical.
 
 ### Logging
 
-Each HTTP request and each WebSocket message appends one line to `logs/requests.jsonl` (git-ignored): trace_id, timestamp, endpoint, session_id, the masked question, duration_ms, status, refused and grounded. `prune_logs()` deletes lines older than seven days, as KB09 allows. A line from the demo:
+Each HTTP request and each WebSocket message appends one line to `logs/requests.jsonl` (git-ignored): trace_id, timestamp, endpoint, session_id, the masked question, duration_ms, status, refused and grounded. Upload lines also carry doc_id, never the text. `prune_logs()` deletes lines older than seven days, as KB09 allows. A line from the demo:
 
 ```json
-{"endpoint": "/ask", "session_id": "demo-ask", "question": "my number is [PHONE_MASKED], check APT-012", "duration_ms": 144.9, "status": 200, "refused": false, "grounded": true}
+{"endpoint": "/ask", "session_id": "demo-ask", "question": "my number is [PHONE_MASKED], check APT-012", "duration_ms": 121.5, "status": 200, "refused": false, "grounded": true}
 ```
 
-The demo wrote 10 log lines, with no raw number in any of them (trace_id and timestamp are omitted above). [Log sample](outputs/part3_log_sample.jsonl).
+The demo wrote 14 log lines, with no raw number, no admin key and no rejected upload text in any of them (trace_id and timestamp are omitted above). [Log sample](outputs/part3_log_sample.jsonl).
 
 ### Evaluation
 
@@ -340,7 +344,7 @@ The demo wrote 10 log lines, with no raw number in any of them (trace_id and tim
 
 This is the first and only run; I changed nothing after it. The strict Part 2 guardrail refused five answerable questions on ordinary words: 'details' (e01), 'visit' (e02), 'applies' (e10), 'quickly' (e11) and 'number' (e13). This is the same every-term weakness as in Part 2. "My child has stopped breathing" (e08) is not caught by the emergency phrase list and was refused at Stage 1 without KB08's direction. That is a real safety miss, and I did not add a phrase for it. Every answered reply quoted policy text verbatim and cited its expected source. [Full evaluation with replies and reasons](outputs/part3_eval.txt).
 
-All 76 tests pass, and every `outputs/part2_*.txt` is byte-identical to `main`. [Test results](outputs/part3_tests.txt).
+All 80 tests pass. After the upload and WebSocket hardening, `outputs/part3_eval.txt` and every `outputs/part2_*.txt` are byte-identical. [Test results](outputs/part3_tests.txt).
 
 ## What I learned in Part 3
 
