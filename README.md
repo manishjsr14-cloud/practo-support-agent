@@ -346,6 +346,23 @@ This is the first and only run; I changed nothing after it. The strict Part 2 gu
 
 All 80 tests pass. After the upload and WebSocket hardening, `outputs/part3_eval.txt` and every `outputs/part2_*.txt` are byte-identical. [Test results](outputs/part3_tests.txt).
 
+### Emergency detection v2
+
+A phrase list cannot cover every way an emergency is described. v2 keeps the phrase list and also triggers when a message's MiniLM embedding is close enough to one of eight plain emergency descriptions in `rules.py`. I wrote and committed those descriptions before computing any calibration score, and none copies a calibration or test sentence. T_EMERGENCY comes only from `emergency_calibration.py`. The groups overlapped: the lowest emergency, "My baby is turning blue", scored 0.255294144, while the highest non-emergency, "Can I get a second opinion on my heart scan?", scored 0.441981703. So the safety-first rule set T_EMERGENCY = 0.255294144, and three of the eight calibration non-emergencies trigger at that level. This is the first and only run; I changed nothing after it. [Full output](outputs/part3_emergency_v2.txt).
+
+| Set | v1 (phrases) correct | v2 (phrases or meaning) correct |
+|---|---:|---:|
+| Emergency v2 test set (6 trigger, 6 not) | 8 of 12 | 8 of 12 |
+| Part 2 emergency set (4 trigger, 3 not) | 7 of 7 | 6 of 7 |
+| Part 3 eval questions (e08 only) | 14 of 15 | 15 of 15 |
+
+| v2 change | Question |
+|---|---|
+| Emergency now caught | "My dad is not responding and his lips are blue"; "My wife has trouble breathing and chest tightness"; "I'm bleeding a lot from a deep cut"; "My grandfather's face is drooping and his speech is slurred"; e08 "My child has stopped breathing, what do I do?" |
+| False trigger | "Does the clinic treat emergencies?"; "What documents do I need for an insurance claim?"; "Is my chest X-ray report ready?"; "Can I have a home visit after an accident last month?"; Part 2's "What is the emergency-visit protocol?" |
+
+None of the 20 Part 2 guardrail questions changes. The trade-off: v2 catches all six new emergencies and e08, but its low threshold sends ordinary questions about emergencies, chests and accidents to the emergency direction. For a healthcare agent, an unneeded direction is the safer mistake, but here it costs as many correct answers as it gains. The Part 3 first-run table above stays as the original measurement; v2 would change only e08. The emergency descriptions were written by the same assistant that had already seen the test questions, so these v2 results may be slightly optimistic. All 84 tests pass. [Test results](outputs/part3_emergency_v2_tests.txt).
+
 ## What I learned in Part 3
 
 [I will write this myself]
