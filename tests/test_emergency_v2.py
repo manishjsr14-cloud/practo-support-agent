@@ -1,7 +1,8 @@
 """Check emergency detection v2: descriptions, threshold rule and pipeline routing."""
 # What: the descriptions copy no calibration or test sentence, T_EMERGENCY follows the
-#   midpoint-or-overlap rule from the calibration messages only, a meaning-only emergency
-#   gets KB08's reply through the pipeline, and phrase matches behave as in v1.
+#   midpoint-or-overlap rule from the calibration messages only, phrase matches behave as in
+#   v1, and the two-level response: a phrase match gets the emergency reply only, a
+#   meaning-only match gets the normal reply plus the KB08 note.
 # Task: Part 3 extension tests. Used by: "python -m unittest discover -s tests".
 
 import settings  # noqa: F401  (must come before any crewai import)
@@ -14,6 +15,7 @@ import emergency_calibration
 import emergency_queries
 import emergency_v2_queries
 import pipeline
+from guardrails import KB08_PATH
 from rules import EMERGENCY_DESCRIPTIONS
 
 
@@ -47,16 +49,32 @@ class EmergencyV2Tests(unittest.TestCase):
             self.assertTrue(found["v1"] and found["v2"])
             self.assertEqual(found["by"], "phrase")
 
-    # A message with no listed phrase but an emergency meaning gets KB08's reply, before the crew.
-    def test_meaning_only_emergency_through_the_pipeline(self):
+    # Two levels (added after the first v2 run): a meaning-only match runs the normal pipeline
+    # and appends the note and KB08's direction, adding 08_emergency_protocol to sources.
+    def test_meaning_only_match_gets_normal_reply_plus_note(self):
         text = "My child has stopped breathing, what do I do?"
         found = emergency.detect(text)
         self.assertEqual((found["v1"], found["v2"], found["by"]), (False, True, "meaning"))
+        response = pipeline.ask("v2-meaning", text)
+        self.assertIsNotNone(pipeline.LAST_RUN["result"])
+        self.assertNotIn("emergency", pipeline.LAST_RUN)
+        self.assertTrue(response.answer.endswith(f"{emergency.NOTE}\nClinic policy (KB08): "
+                                                 f"\"{emergency.kb08_direction()}\""))
+        self.assertIn("08_emergency_protocol", response.sources)
+
+    # A phrase match still gets the emergency reply only, before the crew.
+    def test_phrase_match_gets_emergency_reply_only(self):
         with mock.patch.object(pipeline, "run_crew", side_effect=AssertionError("crew ran")):
-            response = pipeline.ask("v2-meaning", text)
+            response = pipeline.ask("v2-phrase", "My father collapsed and is not breathing")
         self.assertEqual(response.sources, ["08_emergency_protocol"])
-        self.assertIn("local emergency services", response.answer)
-        self.assertTrue(pipeline.LAST_RUN["emergency"][0].startswith("meaning:"))
+        self.assertEqual(pipeline.LAST_RUN["emergency"], ["not breathing", "collapsed"])
+
+    # The note gives the direction only: it neither diagnoses nor names a medicine, and the
+    # quoted KB08 sentence is word for word from kb/08.
+    def test_note_gives_direction_only(self):
+        for word in ("diagnos", "medicine", "medication", "tablet", "dose"):
+            self.assertNotIn(word, emergency.NOTE.lower())
+        self.assertIn(emergency.kb08_direction(), KB08_PATH.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
