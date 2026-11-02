@@ -299,6 +299,8 @@ Bash (not verified):
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
+I verified a live server on Windows: after starting uvicorn as above, a POST /ask with "How much does a new Dermatology consultation cost?" sent through `Invoke-RestMethod` returned a validated, grounded `CrewResponse` containing "INR 800 for Dermatology" and citing `03_consultation_fees`. Bash is still not verified.
+
 ### API
 
 - `POST /ask` `{session_id, question, include_uploads=false}` returns the validated `CrewResponse` from `pipeline.ask`, so every Part 2 guardrail applies unchanged.
