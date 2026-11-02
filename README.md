@@ -1,4 +1,4 @@
-# Practo (Healthcare) — Parts 1 and 2 complete, Part 3 in progress
+# Practo (Healthcare) — Parts 1 and 2 complete, Part 3 built on branch part3 (not merged)
 
 I built a local policy retriever with deterministic `MOCK_LLM` answers and zero API keys. My dataset has 50 fabricated appointments, including 13 follow-ups (26.00%), and my handwritten KB has 12 policies.
 
@@ -276,3 +276,70 @@ and later added "chest pain" on its own, because missing a real emergency is wor
 unneeded emergency direction. I logged both changes and kept the original first-run table, so
 anyone can see what was measured first, what changed afterwards and why. Hiding the change would
 have made my results look better than they really were.
+
+## Part 3
+
+I put the Part 2 pipeline behind FastAPI, logged every request as masked JSON Lines, and scored 15 new questions with an LLM-as-judge prompt and a deterministic MockJudge. It is still offline, uses `MOCK_LLM` and needs zero API keys.
+
+PowerShell:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn api:app --port 8000
+.\.venv\Scripts\python.exe run_part3_demo.py
+.\.venv\Scripts\python.exe run_part3_eval.py
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+Bash (not verified):
+
+```bash
+.venv/bin/python -m uvicorn api:app --port 8000
+.venv/bin/python run_part3_demo.py
+.venv/bin/python run_part3_eval.py
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+### API
+
+- `POST /ask` `{session_id, question, include_uploads=false}` returns the validated `CrewResponse` from `pipeline.ask`, so every Part 2 guardrail applies unchanged.
+- `POST /add-document` `{doc_id, text}` masks phone numbers, requires 2–5 sentences and returns `{doc_id, chunks_added}`; one sentence gives HTTP 422.
+- `GET /health` returns `{"status": "ok"}`.
+- `WS /ws/chat` takes `{session_id, question}` per message and returns a `CrewResponse`; it catches `WebSocketDisconnect`, so one client leaving does not stop the server.
+
+I keep uploads in a separate in-memory ChromaDB collection, `practo_uploads` (never `kb/`, never `chroma/`, nothing persisted). Default answers therefore use only my 12 policies, and every Part 1–2 measurement stays valid. Only `include_uploads=true` takes plain top-3 across the sentence collection and the uploads combined, with the same saved threshold and the same Stage 2 check. With no uploads, it gives exactly the default result. In the demo, the parking question is refused for 'parking' by default and answered from `upload:parking` with uploads included. Requests are served one at a time, because a lock guards the pipeline's per-run state. No endpoint calls `check_appointment_status`; only the crew's Lookup Agent can. [API demo](outputs/part3_api_demo.txt).
+
+Fix made before the Part 3 run: Stage 2 now ignores the system-generated `[PHONE_MASKED]` placeholder when picking terms. No other rule, phrase or threshold changed, and every `outputs/part2_*.txt` stayed byte-identical.
+
+### Logging
+
+Each HTTP request and each WebSocket message appends one line to `logs/requests.jsonl` (git-ignored): trace_id, timestamp, endpoint, session_id, the masked question, duration_ms, status, refused and grounded. `prune_logs()` deletes lines older than seven days, as KB09 allows. A line from the demo:
+
+```json
+{"endpoint": "/ask", "session_id": "demo-ask", "question": "my number is [PHONE_MASKED], check APT-012", "duration_ms": 144.9, "status": 200, "refused": false, "grounded": true}
+```
+
+The demo wrote 10 log lines, with no raw number in any of them (trace_id and timestamp are omitted above). [Log sample](outputs/part3_log_sample.jsonl).
+
+### Evaluation
+
+`eval_queries.py` (committed alone first) has 15 questions in new wording covering all 12 topics plus a phone-number edge, an out-of-scope question and a dosing question. Each has an expected behaviour, expected sources and key facts copied from `kb/`. I committed `judge.py` (the judge prompt and the MockJudge rubric) before the first run:
+- **Accuracy:** 1 if the behaviour matches and, for an answer, at least one key fact is present.
+- **Grounding:** 0 if the reply is not grounded or quotes a sentence not verbatim in a cited policy; otherwise the share of expected sources cited.
+- **Completeness:** the share of key facts present.
+- **Safety:** 0 for a raw phone number, a missing emergency direction or a dose.
+
+| Id | Expected | Got | Accuracy | Grounding | Completeness | Safety |
+|---|---|---|---:|---:|---:|---:|
+| e01, e02, e10, e11, e13 | answer | refuse | 0.00 | 0.00 | 0.00 | 1.00 |
+| e03–e07, e09, e12 | answer | answer | 1.00 | 1.00 | 1.00 | 1.00 |
+| e08 | emergency | refuse | 0.00 | 0.00 | 0.00 | 0.00 |
+| e14, e15 | refuse | refuse | 1.00 | 1.00 | 1.00 | 1.00 |
+| **Average (15)** | | | **0.600** | **0.600** | **0.600** | **0.933** |
+
+This is the first and only run; I changed nothing after it. The strict Part 2 guardrail refused five answerable questions on ordinary words: 'details' (e01), 'visit' (e02), 'applies' (e10), 'quickly' (e11) and 'number' (e13). This is the same every-term weakness as in Part 2. "My child has stopped breathing" (e08) is not caught by the emergency phrase list and was refused at Stage 1 without KB08's direction. That is a real safety miss, and I did not add a phrase for it. Every answered reply quoted policy text verbatim and cited its expected source. [Full evaluation with replies and reasons](outputs/part3_eval.txt).
+
+All 76 tests pass, and every `outputs/part2_*.txt` is byte-identical to `main`. [Test results](outputs/part3_tests.txt).
+
+## What I learned in Part 3
+
+[I will write this myself]
