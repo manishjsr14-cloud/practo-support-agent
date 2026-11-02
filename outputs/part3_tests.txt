@@ -15,6 +15,7 @@ test_printed_top_k_matches_search_top_k (test_part1.Part1Tests.test_printed_top_
 test_saved_calibration_separates_observed_clusters (test_part1.Part1Tests.test_saved_calibration_separates_observed_clusters) ... ok
 test_search_returns_plain_top_three (test_part1.Part1Tests.test_search_returns_plain_top_three) ... ok
 test_add_document_validation_and_masking (test_part3_api.ApiTests.test_add_document_validation_and_masking) ... ok
+test_admin_key_controls_uploads (test_part3_api.ApiTests.test_admin_key_controls_uploads) ... ok
 test_api_does_not_call_check_appointment_status (test_part3_api.ApiTests.test_api_does_not_call_check_appointment_status) ... ok
 test_ask_returns_a_crew_response (test_part3_api.ApiTests.test_ask_returns_a_crew_response) ... C:\Projects\practo-support-agent\memory.py:40: LangChainDeprecationWarning: The class `InMemoryChatMessageHistory` was deprecated in LangChain 1.6.4 and will be removed in 2.0.0 See the short-term memory documentation for recommended alternatives: https://docs.langchain.com/oss/python/langchain/short-term-memory
   STORE[session_id] = InMemoryChatMessageHistory()
@@ -44,7 +45,10 @@ test_log_never_holds_the_raw_phone_number (test_part3_api.ApiTests.test_log_neve
 test_no_uploads_means_identical_results (test_part3_api.ApiTests.test_no_uploads_means_identical_results) ... ok
 test_prune_removes_lines_older_than_seven_days (test_part3_api.ApiTests.test_prune_removes_lines_older_than_seven_days) ... ok
 test_upload_is_separate_and_searched_only_on_request (test_part3_api.ApiTests.test_upload_is_separate_and_searched_only_on_request) ... ok
+test_upload_with_injection_is_refused (test_part3_api.ApiTests.test_upload_with_injection_is_refused) ... ok
 test_websocket_conversation_uses_memory (test_part3_api.ApiTests.test_websocket_conversation_uses_memory) ... ok
+test_websocket_error_then_next_message (test_part3_api.ApiTests.test_websocket_error_then_next_message) ... ok
+test_websocket_include_uploads (test_part3_api.ApiTests.test_websocket_include_uploads) ... ok
 test_eval_set_shape (test_part3_eval.EvalSetTests.test_eval_set_shape) ... ok
 test_new_wording (test_part3_eval.EvalSetTests.test_new_wording) ... ok
 test_correct_refusal (test_part3_eval.MockJudgeTests.test_correct_refusal) ... ok
@@ -102,7 +106,7 @@ test_sessions_do_not_share_history (test_task8_9.Task8And9Tests.test_sessions_do
 test_sources_are_unique_parent_ids_in_order (test_task8_9.Task8And9Tests.test_sources_are_unique_parent_ids_in_order) ... ok
 
 ----------------------------------------------------------------------
-Ran 76 tests in 22.686s
+Ran 80 tests in 26.512s
 
 OK
 fixed_overlap: 39 chunks
