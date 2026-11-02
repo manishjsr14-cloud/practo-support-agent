@@ -9,8 +9,9 @@
 from functools import lru_cache
 
 from emergency_calibration import CAL_EMERGENCY, CAL_NOT
-from guardrails import emergency_phrases
+from guardrails import emergency_phrases, kb08_direction
 from rules import EMERGENCY_DESCRIPTIONS
+from schema import validate_response
 
 
 # Embed texts with the cached MiniLM model, as unit vectors (so a dot product is the cosine).
@@ -51,6 +52,23 @@ def emergency_threshold():
     false_triggers = [m for m, s in not_emergency.items() if s >= threshold]
     return {"emergency": emergency, "not": not_emergency, "threshold": threshold,
             "rule": rule, "false_triggers": false_triggers}
+
+
+# The note added to a normal reply when only the meaning matched (two-level response, added
+#   after the first v2 run). It gives KB08's direction and never diagnoses or names a medicine.
+NOTE = ("If this is an emergency, contact local emergency services or go to the nearest "
+        "emergency department now.")
+
+
+# Append the emergency note and KB08's direction to a normal reply (meaning-only match).
+# Takes: a CrewResponse. Returns: a validated copy with the note appended to the answer and
+#   "08_emergency_protocol" added to sources; refused, grounded and the reason are unchanged.
+def with_emergency_note(response):
+    data = response.model_dump()
+    data["answer"] += f"\n\n{NOTE}\nClinic policy (KB08): \"{kb08_direction()}\""
+    if "08_emergency_protocol" not in data["sources"]:
+        data["sources"].append("08_emergency_protocol")
+    return validate_response(data)
 
 
 # Decide whether a message is an emergency, with v1 (phrases) and v2 (phrases or meaning).

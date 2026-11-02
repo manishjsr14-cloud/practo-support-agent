@@ -10,7 +10,7 @@ import settings  # noqa: F401  (sets the offline flags before crewai is imported
 import json
 
 from crew import run_crew
-from emergency import detect
+from emergency import detect, with_emergency_note
 from guardrails import check_policy, emergency_response, injection_phrases, refusal
 from memory import prepare_user_text, remembered_record_id, session_config, with_memory
 from mock_llm import KB08_NOTE, NO_RECORD_ID
@@ -84,24 +84,26 @@ def run_turn(inputs):
     # Emergency rule (added after the first guardrail run, because KB08 requires it): a
     # described emergency gets KB08's direction at once, before the crew and before the
     # groundedness check. It is a separate rule, not part of groundedness.
-    # v2 (Part 3 extension): it also fires when the message is close in meaning to an
-    #   emergency description (emergency.detect); "emergency" lists the matched phrases, or
-    #   the closest description and its similarity when only the meaning matched.
+    # v2 (Part 3 extension) has two levels (added after the first v2 run; detection unchanged):
+    #   a phrase match gets the emergency reply only, as before; a meaning-only match runs
+    #   the normal pipeline and then appends the emergency note and KB08's direction.
     found = detect(question)
-    if found["v2"]:
-        urgent = found["phrases"] or [f"meaning: {found['description']!r} ({found['similarity']:.9f})"]
-        response = emergency_response(urgent)
+    if found["phrases"]:
+        response = emergency_response(found["phrases"])
         LAST_RUN.clear()
         LAST_RUN.update({"result": None, "remembered_record_id": None, "guardrail": None,
-                         "emergency": urgent, "emergency_detail": found})
+                         "emergency": found["phrases"], "emergency_detail": found})
         return {"answer": response.answer, "response": response.model_dump_json()}
     record_id = remembered_record_id(question, inputs["history"])
     include_uploads = inputs.get("include_uploads", False)
     result = run_crew(question, output_model=CrewResponse, session_record_id=record_id,
                       include_uploads=include_uploads)
     response, check = build_response(result, include_uploads)
+    if found["v2"]:
+        response = with_emergency_note(response)
     LAST_RUN.clear()
-    LAST_RUN.update({"result": result, "remembered_record_id": record_id, "guardrail": check})
+    LAST_RUN.update({"result": result, "remembered_record_id": record_id, "guardrail": check,
+                     "emergency_note": found if found["v2"] else None})
     return {"answer": response.answer, "response": response.model_dump_json()}
 
 
