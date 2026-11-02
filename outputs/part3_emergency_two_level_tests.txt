@@ -1,0 +1,135 @@
+Interpreter: C:\Projects\practo-support-agent\.venv\Scripts\python.exe
+Versions: numpy=2.5.4; transformers=5.19.0; sentence-transformers=6.1.0; chromadb=1.5.9; crewai=1.15.28; fastapi=0.143.1; starlette=1.8.0; uvicorn=0.54.0
+C:\Projects\practo-support-agent\pipeline.py:111: LangChainDeprecationWarning: RunnableWithMessageHistory is deprecated. Use LangGraph's built-in persistence instead.
+  CHAT = with_memory(run_turn)
+test_descriptions_copy_no_calibration_or_test_sentence (test_emergency_v2.EmergencyV2Tests.test_descriptions_copy_no_calibration_or_test_sentence) ... ok
+test_meaning_only_match_gets_normal_reply_plus_note (test_emergency_v2.EmergencyV2Tests.test_meaning_only_match_gets_normal_reply_plus_note) ... C:\Projects\practo-support-agent\memory.py:40: LangChainDeprecationWarning: The class `InMemoryChatMessageHistory` was deprecated in LangChain 1.6.4 and will be removed in 2.0.0 See the short-term memory documentation for recommended alternatives: https://docs.langchain.com/oss/python/langchain/short-term-memory
+  STORE[session_id] = InMemoryChatMessageHistory()
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:425: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  if self.function_calling_llm and not isinstance(
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:433: DeprecationWarning: deprecated
+  if self.allow_code_execution:
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:444: DeprecationWarning: deprecated
+  if self.reasoning and self.planning_config is None:
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crew.py:650: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  if self.function_calling_llm and not isinstance(self.function_calling_llm, LLM):
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crews\utils.py:372: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  crew.function_calling_llm,
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crews\utils.py:87: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  if not agent.function_calling_llm:  # type: ignore[attr-defined]
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\agent\core.py:1300: DeprecationWarning: function_calling_llm is deprecated and will be removed in a future release.
+  function_calling_llm=self.function_calling_llm,
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crew.py:1675: DeprecationWarning: deprecated
+  if hasattr(agent, "allow_code_execution") and getattr(
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crew.py:1682: DeprecationWarning: deprecated
+  and hasattr(agent, "multimodal")
+C:\Projects\practo-support-agent\.venv\Lib\site-packages\crewai\crew.py:1683: DeprecationWarning: deprecated
+  and getattr(agent, "multimodal", False)
+ok
+test_note_gives_direction_only (test_emergency_v2.EmergencyV2Tests.test_note_gives_direction_only) ... ok
+test_phrase_match_gets_emergency_reply_only (test_emergency_v2.EmergencyV2Tests.test_phrase_match_gets_emergency_reply_only) ... ok
+test_phrase_matches_behave_as_v1 (test_emergency_v2.EmergencyV2Tests.test_phrase_matches_behave_as_v1) ... ok
+test_threshold_rule (test_emergency_v2.EmergencyV2Tests.test_threshold_rule) ... ok
+test_answers_are_verbatim_retrieved_context (test_part1.Part1Tests.test_answers_are_verbatim_retrieved_context) ... ok
+test_chunk_counts_and_parent_metadata (test_part1.Part1Tests.test_chunk_counts_and_parent_metadata) ... ok
+test_dataset_coverage_and_follow_up_band (test_part1.Part1Tests.test_dataset_coverage_and_follow_up_band) ... ok
+test_dataset_fields_and_ranges (test_part1.Part1Tests.test_dataset_fields_and_ranges) ... ok
+test_dataset_is_deterministic_and_matches_json (test_part1.Part1Tests.test_dataset_is_deterministic_and_matches_json) ... ok
+test_document_metrics_deduplicate_parents (test_part1.Part1Tests.test_document_metrics_deduplicate_parents) ... ok
+test_knowledge_base_has_all_topics_and_valid_sentences (test_part1.Part1Tests.test_knowledge_base_has_all_topics_and_valid_sentences) ... ok
+test_missing_calibration_is_an_error (test_part1.Part1Tests.test_missing_calibration_is_an_error) ... ok
+test_out_of_scope_question_uses_fallback (test_part1.Part1Tests.test_out_of_scope_question_uses_fallback) ... ok
+test_printed_top_k_matches_search_top_k (test_part1.Part1Tests.test_printed_top_k_matches_search_top_k) ... ok
+test_saved_calibration_separates_observed_clusters (test_part1.Part1Tests.test_saved_calibration_separates_observed_clusters) ... ok
+test_search_returns_plain_top_three (test_part1.Part1Tests.test_search_returns_plain_top_three) ... ok
+test_add_document_validation_and_masking (test_part3_api.ApiTests.test_add_document_validation_and_masking) ... ok
+test_admin_key_controls_uploads (test_part3_api.ApiTests.test_admin_key_controls_uploads) ... ok
+test_api_does_not_call_check_appointment_status (test_part3_api.ApiTests.test_api_does_not_call_check_appointment_status) ... ok
+test_ask_returns_a_crew_response (test_part3_api.ApiTests.test_ask_returns_a_crew_response) ... ok
+test_disconnect_then_second_client (test_part3_api.ApiTests.test_disconnect_then_second_client) ... ok
+test_log_never_holds_the_raw_phone_number (test_part3_api.ApiTests.test_log_never_holds_the_raw_phone_number) ... ok
+test_no_uploads_means_identical_results (test_part3_api.ApiTests.test_no_uploads_means_identical_results) ... ok
+test_prune_removes_lines_older_than_seven_days (test_part3_api.ApiTests.test_prune_removes_lines_older_than_seven_days) ... ok
+test_upload_is_separate_and_searched_only_on_request (test_part3_api.ApiTests.test_upload_is_separate_and_searched_only_on_request) ... ok
+test_upload_with_injection_is_refused (test_part3_api.ApiTests.test_upload_with_injection_is_refused) ... ok
+test_websocket_conversation_uses_memory (test_part3_api.ApiTests.test_websocket_conversation_uses_memory) ... ok
+test_websocket_error_then_next_message (test_part3_api.ApiTests.test_websocket_error_then_next_message) ... ok
+test_websocket_include_uploads (test_part3_api.ApiTests.test_websocket_include_uploads) ... ok
+test_eval_set_shape (test_part3_eval.EvalSetTests.test_eval_set_shape) ... ok
+test_new_wording (test_part3_eval.EvalSetTests.test_new_wording) ... ok
+test_correct_refusal (test_part3_eval.MockJudgeTests.test_correct_refusal) ... ok
+test_emergency_without_direction (test_part3_eval.MockJudgeTests.test_emergency_without_direction) ... ok
+test_false_refusal (test_part3_eval.MockJudgeTests.test_false_refusal) ... ok
+test_invented_sentence_is_not_grounded (test_part3_eval.MockJudgeTests.test_invented_sentence_is_not_grounded) ... ok
+test_perfect_answer (test_part3_eval.MockJudgeTests.test_perfect_answer) ... ok
+test_prompt_template (test_part3_eval.MockJudgeTests.test_prompt_template) ... ok
+test_safety_failures (test_part3_eval.MockJudgeTests.test_safety_failures) ... ok
+test_pre_registered_set (test_task10.EmergencyRuleTests.test_pre_registered_set) ... ok
+test_reply_quotes_kb08_without_advice (test_task10.EmergencyRuleTests.test_reply_quotes_kb08_without_advice) ... ok
+test_rule_runs_before_the_crew (test_task10.EmergencyRuleTests.test_rule_runs_before_the_crew) ... ok
+test_history_never_stores_the_raw_number (test_task10.InputGuardrailTests.test_history_never_stores_the_raw_number) ... ok
+test_injection_is_blocked_before_the_crew (test_task10.InputGuardrailTests.test_injection_is_blocked_before_the_crew) ... ok
+test_ordinary_questions_are_not_flagged (test_task10.InputGuardrailTests.test_ordinary_questions_are_not_flagged) ... ok
+test_pii_example_raw_versus_masked (test_task10.InputGuardrailTests.test_pii_example_raw_versus_masked) ... ok
+test_what_is_and_is_not_masked (test_task10.InputGuardrailTests.test_what_is_and_is_not_masked) ... ok
+test_mixed_question_names_the_unanswered_part (test_task10.OutputGuardrailTests.test_mixed_question_names_the_unanswered_part) ... ok
+test_record_only_questions (test_task10.OutputGuardrailTests.test_record_only_questions) ... ok
+test_stage1_and_stage2_refusals (test_task10.OutputGuardrailTests.test_stage1_and_stage2_refusals) ... ok
+test_supported_policy_answer_is_grounded (test_task10.OutputGuardrailTests.test_supported_policy_answer_is_grounded) ... ok
+test_terms_and_text_match (test_task10.OutputGuardrailTests.test_terms_and_text_match) ... ok
+test_threshold_is_the_calibration_midpoint (test_task10.OutputGuardrailTests.test_threshold_is_the_calibration_midpoint) ... ok
+test_follow_up_and_age_have_independent_contributions (test_task6.Task6Tests.test_follow_up_and_age_have_independent_contributions) ... ok
+test_invalid_and_unknown_ids_return_controlled_errors (test_task6.Task6Tests.test_invalid_and_unknown_ids_return_controlled_errors) ... ok
+test_lookup_returns_the_six_recorded_fields_and_score (test_task6.Task6Tests.test_lookup_returns_the_six_recorded_fields_and_score) ... ok
+test_one_record_perturbation_recomputes_the_live_threshold (test_task6.Task6Tests.test_one_record_perturbation_recomputes_the_live_threshold) ... ok
+test_recommendation_includes_the_threshold_and_excludes_the_next_lower_float (test_task6.Task6Tests.test_recommendation_includes_the_threshold_and_excludes_the_next_lower_float) ... ok
+test_scores_match_the_formula_and_stay_in_range (test_task6.Task6Tests.test_scores_match_the_formula_and_stay_in_range) ... ok
+test_action_without_observation_has_not_run (test_task7.Task7Tests.test_action_without_observation_has_not_run) ... ok
+test_arguments_follow_the_tool_schema (test_task7.Task7Tests.test_arguments_follow_the_tool_schema) ... ok
+test_captured_call4_text_is_not_a_result (test_task7.Task7Tests.test_captured_call4_text_is_not_a_result) ... ok
+test_drafts_contain_real_content_and_no_placeholders (test_task7.Task7Tests.test_drafts_contain_real_content_and_no_placeholders) ... ok
+test_importing_tools_does_not_import_rag (test_task7.Task7Tests.test_importing_tools_does_not_import_rag) ... ok
+test_missing_agent_gives_plain_final_answer (test_task7.Task7Tests.test_missing_agent_gives_plain_final_answer) ... ok
+test_observation_in_system_or_user_message_is_ignored (test_task7.Task7Tests.test_observation_in_system_or_user_message_is_ignored) ... ok
+test_only_lookup_agent_has_check_appointment_status (test_task7.Task7Tests.test_only_lookup_agent_has_check_appointment_status) ... ok
+test_policy_clause_drops_parts_with_record_ids (test_task7.Task7Tests.test_policy_clause_drops_parts_with_record_ids) ... ok
+test_react_path_is_used (test_task7.Task7Tests.test_react_path_is_used) ... ok
+test_retrieval_query_excludes_the_record_id (test_task7.Task7Tests.test_retrieval_query_excludes_the_record_id) ... ok
+test_storage_dir_and_flags_after_importing_crew (test_task7.Task7Tests.test_storage_dir_and_flags_after_importing_crew) ... ok
+test_template_observation_alone_is_not_a_result (test_task7.Task7Tests.test_template_observation_alone_is_not_a_result) ... ok
+test_tool_counts_for_the_demo_questions (test_task7.Task7Tests.test_tool_counts_for_the_demo_questions) ... ok
+test_crew_returns_a_crew_response_before_filling (test_task8_9.Task8And9Tests.test_crew_returns_a_crew_response_before_filling) ... ok
+test_escalation_comes_from_recommend_escalation (test_task8_9.Task8And9Tests.test_escalation_comes_from_recommend_escalation) ... ok
+test_every_response_validates_and_invalid_payload_raises (test_task8_9.Task8And9Tests.test_every_response_validates_and_invalid_payload_raises) ... ok
+test_follow_up_uses_the_remembered_record_id (test_task8_9.Task8And9Tests.test_follow_up_uses_the_remembered_record_id) ... ok
+test_history_stores_prepared_text (test_task8_9.Task8And9Tests.test_history_stores_prepared_text) ... ok
+test_new_session_finds_no_record_id (test_task8_9.Task8And9Tests.test_new_session_finds_no_record_id) ... ok
+test_no_llm_call_without_agent_or_task (test_task8_9.Task8And9Tests.test_no_llm_call_without_agent_or_task) ... ok
+test_policy_turn_does_not_look_up_the_remembered_record (test_task8_9.Task8And9Tests.test_policy_turn_does_not_look_up_the_remembered_record) ... ok
+test_refer_back_rule (test_task8_9.Task8And9Tests.test_refer_back_rule) ... ok
+test_session_record_id_never_reaches_retrieval (test_task8_9.Task8And9Tests.test_session_record_id_never_reaches_retrieval) ... ok
+test_sessions_do_not_share_history (test_task8_9.Task8And9Tests.test_sessions_do_not_share_history) ... ok
+test_sources_are_unique_parent_ids_in_order (test_task8_9.Task8And9Tests.test_sources_are_unique_parent_ids_in_order) ... ok
+
+----------------------------------------------------------------------
+Ran 86 tests in 33.298s
+
+OK
+fixed_overlap: 39 chunks
+sentence: 36 chunks
+Model: sentence-transformers/all-MiniLM-L6-v2; revision: c9745ed1d9f207416be6d2e6f8de32d1f16199bf
+Fixed size=320; overlap=80; sentence size=2
+HF_HUB_OFFLINE=1; ANONYMIZED_TELEMETRY=False; CREWAI_DISABLE_TELEMETRY=true
+01_appointment_booking: 5 sentences
+02_cancellation_rescheduling: 5 sentences
+03_consultation_fees: 5 sentences
+04_insurance_claims: 5 sentences
+05_prescription_refills: 5 sentences
+06_lab_turnaround: 5 sentences
+07_telemedicine: 5 sentences
+08_emergency_protocol: 5 sentences
+09_patient_privacy: 5 sentences
+10_follow_up_discount: 5 sentences
+11_second_opinion: 5 sentences
+12_home_visits: 5 sentences
+KB validation: PASS; documents=12; required filenames present
