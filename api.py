@@ -7,10 +7,13 @@
 
 import settings  # noqa: F401  (sets the offline flags before crewai is imported)
 
+import hmac
+import json
+import os
 import threading
 import time
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
@@ -73,19 +76,38 @@ def ask_endpoint(request: AskRequest):
     return response
 
 
+# Check the X-Admin-Key header against the PRACTO_ADMIN_KEY environment variable.
+# Takes: the header value (or None). Returns: None if allowed, else the refusal message.
+# Why: only an operator may add documents; with no key set, uploads are disabled. The key
+#   is compared in constant time and never printed or logged.
+def admin_refusal(given):
+    expected = os.environ.get("PRACTO_ADMIN_KEY")
+    if not expected:
+        return "Uploads are disabled: PRACTO_ADMIN_KEY is not set on the server."
+    if not given or not hmac.compare_digest(given.encode("utf-8"), expected.encode("utf-8")):
+        return "Missing or wrong X-Admin-Key."
+    return None
+
+
 # Add a document to the separate in-memory uploads collection (never kb/ or chroma/).
-# Takes: a DocumentRequest. Returns: the doc id and the number of chunks added; HTTP 422
-#   for a policy name as id or a text outside 2-5 sentences. The text itself is not logged.
+# Takes: a DocumentRequest and the X-Admin-Key header. Returns: the doc id and the number of
+#   chunks added. HTTP 403 without the right key; HTTP 422 for a policy name as id, an
+#   injection phrase or a text outside 2-5 sentences. Only doc_id and status are logged.
 @app.post("/add-document", response_model=DocumentReply)
-def add_document_endpoint(request: DocumentRequest):
+def add_document_endpoint(request: DocumentRequest,
+                          x_admin_key: str | None = Header(default=None, alias="X-Admin-Key")):
     started = time.perf_counter()
+    refusal = admin_refusal(x_admin_key)
+    if refusal:
+        log_request("/add-document", None, None, started, 403, doc_id=request.doc_id)
+        raise HTTPException(status_code=403, detail=refusal)
     try:
         with LOCK:
             chunks = uploads.add_document(request.doc_id, request.text)
     except ValueError as error:
-        log_request("/add-document", None, None, started, 422)
+        log_request("/add-document", None, None, started, 422, doc_id=request.doc_id)
         raise HTTPException(status_code=422, detail=str(error)) from error
-    log_request("/add-document", None, None, started, 200)
+    log_request("/add-document", None, None, started, 200, doc_id=request.doc_id)
     return DocumentReply(doc_id=request.doc_id, chunks_added=chunks)
 
 
