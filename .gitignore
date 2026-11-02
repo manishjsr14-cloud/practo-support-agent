@@ -5,3 +5,4 @@ chroma/
 .venv-part1/
 .crewai/
 .vscode/
+logs/
