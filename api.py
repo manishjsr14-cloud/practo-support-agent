@@ -2,7 +2,8 @@
 # What: HTTP and WebSocket endpoints that answer through pipeline.ask (so every Part 2
 #   guardrail applies unchanged), accept uploaded documents into a separate in-memory
 #   collection, and log one masked JSON line per request or message.
-# Task: Part 3, Tasks 11-12. Run: python -m uvicorn api:app --port 8000
+# Task: Part 3, Tasks 11-12; part3-hardening added the admin key, the upload injection check
+#   and the WebSocket changes. Run: python -m uvicorn api:app --port 8000
 # No endpoint calls check_appointment_status directly; only the crew's Lookup Agent can.
 
 import settings  # noqa: F401  (sets the offline flags before crewai is imported)
@@ -111,23 +112,43 @@ def add_document_endpoint(request: DocumentRequest,
     return DocumentReply(doc_id=request.doc_id, chunks_added=chunks)
 
 
-# Multi-turn chat: each JSON message {session_id, question} gets a CrewResponse back.
-# A client that disconnects ends only its own loop; the server keeps serving others.
+# Check one WebSocket message and pull out its fields.
+# Takes: the raw text. Returns: (session_id, question, include_uploads); raises ValueError
+#   for bad JSON or wrong field types. include_uploads is optional (default false), as in /ask.
+def parse_message(text):
+    try:
+        message = json.loads(text)
+    except ValueError as error:
+        raise ValueError("Send one JSON object per message.") from error
+    if not isinstance(message, dict):
+        raise ValueError("Send one JSON object per message.")
+    session_id, question = message.get("session_id"), message.get("question")
+    include_uploads = message.get("include_uploads", False)
+    if not isinstance(session_id, str) or not isinstance(question, str) or not isinstance(include_uploads, bool):
+        raise ValueError("Send {session_id, question} as strings and include_uploads as true or false.")
+    return session_id, question, include_uploads
+
+
+# Multi-turn chat: each JSON message {session_id, question, include_uploads?} gets a
+#   CrewResponse back. A failing message gets {"error": ...} and the connection stays open;
+#   a client that disconnects ends only its own loop, and the server keeps serving others.
 @app.websocket("/ws/chat")
 async def chat(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            message = await websocket.receive_json()
+            text = await websocket.receive_text()
             started = time.perf_counter()
-            session_id, question = message.get("session_id"), message.get("question")
-            if not isinstance(session_id, str) or not isinstance(question, str):
-                log_request("/ws/chat", session_id if isinstance(session_id, str) else None,
-                            None, started, "error")
-                await websocket.send_json({"error": "Send {session_id, question} as strings."})
+            session_id, question = None, None
+            try:
+                session_id, question, include_uploads = parse_message(text)
+                # The pipeline blocks, so it runs in a worker thread, not on the event loop.
+                response = await run_in_threadpool(locked_ask, session_id, question, include_uploads)
+            except Exception as error:
+                log_request("/ws/chat", session_id, question, started, "error")
+                detail = str(error) if isinstance(error, ValueError) else "The pipeline failed."
+                await websocket.send_json({"error": detail})
                 continue
-            # The pipeline blocks, so it runs in a worker thread, not on the event loop.
-            response = await run_in_threadpool(locked_ask, session_id, question)
             log_request("/ws/chat", session_id, question, started, "ok", response)
             await websocket.send_json(response.model_dump())
     except WebSocketDisconnect:
