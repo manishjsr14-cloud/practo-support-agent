@@ -18,6 +18,7 @@ from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconne
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
+import cache
 import uploads
 from logging_utils import log_request
 from pipeline import ask
@@ -50,9 +51,10 @@ class DocumentReply(BaseModel):
 
 # Run one pipeline turn while holding the lock.
 # Takes: session id, question and include_uploads. Returns: a validated CrewResponse.
+#   The API uses the Part 4 cache, so a repeated policy question skips the crew.
 def locked_ask(session_id, question, include_uploads=False):
     with LOCK:
-        return ask(session_id, question, include_uploads)
+        return ask(session_id, question, include_uploads, use_cache=True)
 
 
 # Report that the service is up.
@@ -105,6 +107,8 @@ def add_document_endpoint(request: DocumentRequest,
     try:
         with LOCK:
             chunks = uploads.add_document(request.doc_id, request.text)
+            # Part 4: an upload can change answers, so every cached reply is dropped.
+            cache.clear()
     except ValueError as error:
         log_request("/add-document", None, None, started, 422, doc_id=request.doc_id)
         raise HTTPException(status_code=422, detail=str(error)) from error

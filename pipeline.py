@@ -1,7 +1,7 @@
 """One customer turn: clean the text, use session memory, run the crew, return a checked reply."""
 # What: ask(session_id, text) runs prepare_user_text (masking) -> memory -> injection check
-#   -> emergency rule -> budget check -> crew -> review stage -> output groundedness guardrail
-#   -> schema validation.
+#   -> emergency rule -> budget check -> cache -> crew -> review stage -> output groundedness
+#   guardrail -> schema validation.
 # Task: Part 2, Tasks 8-10; Part 4 added the review stage. Used by: the runners and tests.
 # The crew's Composer only writes the answer text; the factual fields (sources, tools used,
 #   record id, escalation flag) are filled here from what the tools actually returned.
@@ -10,6 +10,7 @@ import settings  # noqa: F401  (sets the offline flags before crewai is imported
 
 import json
 
+import cache
 from crew import run_crew
 from emergency import detect, with_emergency_note
 import governance
@@ -105,6 +106,12 @@ def run_turn(inputs):
         return finish(refusal(reason), budget=reason)
     record_id = remembered_record_id(question, inputs["history"])
     include_uploads = inputs.get("include_uploads", False)
+    # Cache (Part 4, only with use_cache): a repeated policy-only question reuses its checked
+    # reply and skips the crew and review; the turn is still stored in memory as usual.
+    key = cache.key_for(question, include_uploads, record_id) if inputs.get("use_cache") else None
+    cached = cache.get(key)
+    if cached is not None:
+        return finish(with_emergency_note(cached) if found["v2"] else cached, cache="hit")
     try:
         result = run_crew(question, output_model=CrewResponse, session_record_id=record_id,
                           include_uploads=include_uploads)
@@ -119,6 +126,7 @@ def run_turn(inputs):
         return finish(refusal(reason), budget=reason)
     result["pydantic"] = result["pydantic"].model_copy(update={"answer": verdict.final_answer})
     response, check = build_response(result, include_uploads)
+    cache.put(key, response)
     if found["v2"]:
         response = with_emergency_note(response)
     return finish(response, result=result, remembered_record_id=record_id, guardrail=check,
@@ -130,15 +138,16 @@ CHAT = with_memory(run_turn)
 
 
 # Answer one customer message within one session.
-# Takes: a session id, the raw text and (Part 3) whether to search uploads too; the default
-#   uses only the 12 policies. Returns: a validated CrewResponse.
-def ask(session_id, text, include_uploads=False):
+# Takes: a session id, the raw text, (Part 3) whether to search uploads too (the default
+#   uses only the 12 policies) and (Part 4) whether to use the cache (off by default; the
+#   API turns it on). Returns: a validated CrewResponse.
+def ask(session_id, text, include_uploads=False, use_cache=False):
     question = prepare_user_text(text)
     # Part 4 budget meter: this request's count starts with the masked input.
     governance.start(question, governance.current_cap())
     try:
-        output = CHAT.invoke({"question": question, "include_uploads": include_uploads},
-                             config=session_config(session_id))
+        output = CHAT.invoke({"question": question, "include_uploads": include_uploads,
+                              "use_cache": use_cache}, config=session_config(session_id))
     finally:
         # The cap belongs to this request only; its counts stay readable for reports.
         governance.METER["cap"] = None

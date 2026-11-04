@@ -1,0 +1,39 @@
+Part 4, Task 16: in-memory cache for the grounded-generation step (POST /ask, cache on)
+Key: (lowercased masked question with whitespace collapsed and trailing punctuation removed, include_uploads); record questions are never cached
+
+POST /ask session=cache-c question='What is the status of APT-007?'
+  cache key: None; result: not cacheable
+  LLM calls: 6; tokens: 2630; time: 29310.5 ms; cache stats: {'hits': 0, 'misses': 0}; cached entries: 0
+  grounded=True; sources=[]; answer starts: 'Retrieval result:'
+
+POST /ask session=cache-d question='What is the status of APT-007?'
+  cache key: None; result: not cacheable
+  LLM calls: 6; tokens: 2630; time: 335.9 ms; cache stats: {'hits': 0, 'misses': 0}; cached entries: 0
+  grounded=True; sources=[]; answer starts: 'Retrieval result:'
+
+POST /ask session=cache-warm question='How do I submit an insurance reimbursement claim?'
+  cache key: ('how do i submit an insurance reimbursement claim', False); result: miss
+  LLM calls: 6; tokens: 4309; time: 5192.8 ms; cache stats: {'hits': 0, 'misses': 1}; cached entries: 1
+  grounded=True; sources=['04_insurance_claims']; answer starts: 'Retrieval result:'
+
+POST /ask session=cache-a question='What is the cancellation and rescheduling window?'
+  cache key: ('what is the cancellation and rescheduling window', False); result: miss
+  LLM calls: 6; tokens: 4371; time: 209.5 ms; cache stats: {'hits': 0, 'misses': 2}; cached entries: 2
+  grounded=True; sources=['02_cancellation_rescheduling']; answer starts: 'Retrieval result:'
+
+POST /ask session=cache-b question='  what is the CANCELLATION and rescheduling window '
+  cache key: ('what is the cancellation and rescheduling window', False); result: hit
+  LLM calls: 0; tokens: 13; time: 33.1 ms; cache stats: {'hits': 1, 'misses': 2}; cached entries: 2
+  grounded=True; sources=['02_cancellation_rescheduling']; answer starts: 'Retrieval result:'
+
+Stored history of cache-a: ('human', 'What is the cancellation and rescheduling window?') + 1 ai message
+Stored history of cache-b: ('human', '  what is the CANCELLATION and rescheduling window ') + 1 ai message
+Both sessions stored 2 messages: 2, 2
+Stored answers identical: True
+
+POST /add-document (parking) -> 200; cached entries after upload: 0; cache stats: {'hits': 0, 'misses': 0}
+
+POST /ask session=cache-e question='What is the cancellation and rescheduling window?'
+  cache key: ('what is the cancellation and rescheduling window', False); result: miss
+  LLM calls: 6; tokens: 4371; time: 265.4 ms; cache stats: {'hits': 0, 'misses': 1}; cached entries: 1
+  grounded=True; sources=['02_cancellation_rescheduling']; answer starts: 'Retrieval result:'
