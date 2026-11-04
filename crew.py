@@ -11,6 +11,7 @@ import settings  # noqa: F401  (sets the offline flags before crewai is imported
 from crewai import Agent, Crew, Process, Task
 from crewai.tools import tool
 
+from governance import check_tool_wiring
 from mock_llm import MockLLM
 from tools import check_appointment_status, rag_lookup
 
@@ -91,6 +92,8 @@ def build_crew(llm, output_model=None, session_record_id=None, include_uploads=F
                         description="Customer question: {question}\nCombine the earlier results into one draft reply.",
                         expected_output="A draft reply containing only the earlier results.",
                         output_pydantic=output_model)
+    # Least autonomy (Part 4): refuse the crew if the record tool is on any other agent.
+    check_tool_wiring([retrieval, lookup, composer])
     return Crew(agents=[retrieval, lookup, composer], tasks=[retrieval_task, lookup_task, compose_task],
                 process=Process.sequential, cache=False, memory=False, verbose=False)
 

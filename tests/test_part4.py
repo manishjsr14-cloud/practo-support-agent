@@ -1,6 +1,6 @@
-"""Check the Part 4 review stage."""
-# What: the reviewer and editor rules, the bounded two-agent team, and the three
-#   pre-registered review cases.
+"""Check the Part 4 review stage and governance."""
+# What: the reviewer and editor rules, the bounded two-agent team, the three
+#   pre-registered review cases and the least-autonomy tool wiring.
 # Task: Part 4 tests. Used by: "python -m unittest discover -s tests".
 
 import settings  # noqa: F401  (must come before any framework import)
@@ -8,12 +8,15 @@ import settings  # noqa: F401  (must come before any framework import)
 import asyncio
 import logging
 import unittest
+from unittest.mock import patch
 
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.teams import RoundRobinGroupChat
 
 import crew
+import governance
 import review
+from mock_llm import MockLLM
 from part4_preregistration import INJECTED_SENTENCE, REVIEW_CASES
 from schema import CrewResponse
 
@@ -72,6 +75,23 @@ class ReviewTests(unittest.TestCase):
         finally:
             logging.disable(logging.NOTSET)
         self.assertIn("not registered", str(caught.exception))
+
+
+class ToolWiringTests(unittest.TestCase):
+    # The real crew passes: only the Lookup Agent holds the record tool.
+    def test_real_crew_is_allowed(self):
+        built = crew.build_crew(MockLLM(model="mock-llm"))
+        holders = [agent.role for agent in built.agents
+                   if governance.RECORD_TOOL in {tool.name for tool in agent.tools}]
+        self.assertEqual(holders, ["Lookup Agent"])
+
+    # Wiring the record tool to the Retrieval Agent stops the crew before any call.
+    def test_record_tool_on_another_agent_is_blocked(self):
+        with patch.object(crew, "rag_lookup_tool", crew.check_appointment_status_tool):
+            with self.assertRaises(governance.ToolWiringError) as caught:
+                crew.run_crew("What is the status of APT-007?")
+        self.assertIn("Retrieval Agent may not hold check_appointment_status", str(caught.exception))
+        self.assertEqual(crew.COUNTS, {"rag_lookup": 0, "check_appointment_status": 0})
 
 
 if __name__ == "__main__":
