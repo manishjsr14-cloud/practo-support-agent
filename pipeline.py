@@ -1,7 +1,7 @@
 """One customer turn: clean the text, use session memory, run the crew, return a checked reply."""
 # What: ask(session_id, text) runs prepare_user_text (masking) -> memory -> injection check
-#   -> emergency rule -> crew -> output groundedness guardrail -> schema validation.
-# Task: Part 2, Tasks 8-10. Used by: the Task 8-10 runners and tests.
+#   -> emergency rule -> crew -> review stage -> output groundedness guardrail -> schema validation.
+# Task: Part 2, Tasks 8-10; Part 4 added the review stage. Used by: the runners and tests.
 # The crew's Composer only writes the answer text; the factual fields (sources, tools used,
 #   record id, escalation flag) are filled here from what the tools actually returned.
 
@@ -14,6 +14,7 @@ from emergency import detect, with_emergency_note
 from guardrails import check_policy, emergency_response, injection_phrases, refusal
 from memory import prepare_user_text, remembered_record_id, session_config, with_memory
 from mock_llm import KB08_NOTE, NO_RECORD_ID
+from review import crew_context, review_draft
 from schema import CrewResponse, validate_response
 from tools import recommend_escalation
 
@@ -98,12 +99,16 @@ def run_turn(inputs):
     include_uploads = inputs.get("include_uploads", False)
     result = run_crew(question, output_model=CrewResponse, session_record_id=record_id,
                       include_uploads=include_uploads)
+    # Review stage (Part 4): AutoGen's reviewer and editor check the draft against the
+    # retrieved context and record, before the output guardrail sees it.
+    verdict, _ = review_draft(result["pydantic"].answer, crew_context(result))
+    result["pydantic"] = result["pydantic"].model_copy(update={"answer": verdict.final_answer})
     response, check = build_response(result, include_uploads)
     if found["v2"]:
         response = with_emergency_note(response)
     LAST_RUN.clear()
     LAST_RUN.update({"result": result, "remembered_record_id": record_id, "guardrail": check,
-                     "emergency_note": found if found["v2"] else None})
+                     "emergency_note": found if found["v2"] else None, "review": verdict})
     return {"answer": response.answer, "response": response.model_dump_json()}
 
 
