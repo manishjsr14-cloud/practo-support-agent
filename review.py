@@ -4,8 +4,8 @@
 #   retrieved context or the record; the editor returns a VerdictModel that approves the
 #   draft unchanged or removes those sentences.
 # Task: Part 4, Task 14. Used by: pipeline.py, run_part4_review.py and tests/test_part4.py.
-# Both agents run on ReviewClient, a deterministic offline model client that computes its
-#   reply from the messages it receives (no API, no pre-written replies).
+# Both agents run on review_client.RuleClient, an offline model client whose reply is
+#   computed by the two rule functions below (no API, no pre-written replies).
 # Facts from the installed autogen 0.7.5 source: agent names must be Python identifiers;
 #   max_turns counts agent turns only; StructuredMessage[VerdictModel] must be listed in
 #   custom_message_types, because the team registers message types by class name.
@@ -14,16 +14,15 @@ import settings  # noqa: F401  (sets the offline flags before any framework impo
 
 import asyncio
 import json
-import math
 import re
 
 from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.messages import StructuredMessage
 from autogen_agentchat.teams import RoundRobinGroupChat
-from autogen_core.models import ChatCompletionClient, CreateResult, ModelFamily, RequestUsage
 from pydantic import BaseModel
 
 from mock_llm import KB08_NOTE, NO_CONTEXT, NO_POLICY_QUESTION, NO_RECORD_ID, UNSUPPORTED_TOOL
+from review_client import RuleClient
 
 REVIEWER, EDITOR = "Policy_Compliance_Reviewer", "Final_Editor"
 # Markers that split the task message into its two parts.
@@ -32,7 +31,7 @@ DRAFT_MARK, CONTEXT_MARK = "=== DRAFT ===", "=== CONTEXT ==="
 LABELS = ("Retrieval result:", "Lookup result:", "Sources:", "Top-1 similarity:")
 # Fixed sentences the crew writes itself; they are never policy claims.
 FIXED = (KB08_NOTE, NO_RECORD_ID, NO_POLICY_QUESTION, NO_CONTEXT, UNSUPPORTED_TOOL)
-# How many times the review client was called, per agent (reset by each review_draft()).
+# How many times each agent's model client was called (reset by each review_draft()).
 CALLS = {REVIEWER: 0, EDITOR: 0}
 
 
@@ -58,13 +57,13 @@ def policy_sentences(draft):
     return found
 
 
-# The reviewer's rule: list every policy sentence not found word for word in the context.
+# List every policy sentence not found word for word in the context.
 # Takes: the draft and the context text. Returns: the unsupported sentences, in draft order.
 def unsupported(draft, context):
     return [sentence for sentence in policy_sentences(draft) if sentence not in context]
 
 
-# The editor's rule: approve unchanged, or remove the unsupported sentences.
+# Approve the draft unchanged, or remove the unsupported sentences.
 # Takes: the draft and the reviewer's list. Returns: a VerdictModel.
 def edit(draft, flagged):
     if not flagged:
@@ -83,75 +82,40 @@ def task_text(draft, context):
     return f"{DRAFT_MARK}\n{draft}\n{CONTEXT_MARK}\n{context}"
 
 
-class ReviewClient(ChatCompletionClient):
-    """Deterministic offline model client; its reply is computed from the input messages."""
+# Read the draft and context back out of the task message among AutoGen's messages.
+# Takes: the messages a model client receives. Returns: (draft, context).
+def read_task(messages):
+    task = next(m.content for m in messages if getattr(m, "source", None) == "user")
+    return task.split(DRAFT_MARK + "\n", 1)[1].split("\n" + CONTEXT_MARK + "\n", 1)
 
-    # Takes: which agent this client serves (REVIEWER or EDITOR).
-    def __init__(self, role):
-        self.role = role
-        self._usage = RequestUsage(prompt_tokens=0, completion_tokens=0)
 
-    # Answer one request: the reviewer returns its list as JSON; the editor returns Verdict JSON.
-    # Takes: the messages AutoGen sends (system, the task, then the reviewer's reply for the
-    #   editor) and json_output (VerdictModel for the editor). Returns: a CreateResult.
-    async def create(self, messages, *, tools=[], tool_choice="auto", json_output=None,
-                     extra_create_args={}, cancellation_token=None):
-        CALLS[self.role] += 1
-        task = next(m.content for m in messages if getattr(m, "source", None) == "user")
-        draft, context = task.split(DRAFT_MARK + "\n", 1)[1].split("\n" + CONTEXT_MARK + "\n", 1)
-        if self.role == REVIEWER:
-            reply = json.dumps({"unsupported": unsupported(draft, context)})
-        else:
-            review = next(m.content for m in messages if getattr(m, "source", None) == REVIEWER)
-            reply = edit(draft, json.loads(review)["unsupported"]).model_dump_json()
-        prompt = sum(len(str(m.content)) for m in messages)
-        self._usage = RequestUsage(prompt_tokens=math.ceil(prompt / 4), completion_tokens=math.ceil(len(reply) / 4))
-        return CreateResult(finish_reason="stop", content=reply, usage=self._usage, cached=False)
+# The reviewer's model: reply with the unsupported sentences as JSON.
+def reviewer_rule(messages):
+    draft, context = read_task(messages)
+    return json.dumps({"unsupported": unsupported(draft, context)})
 
-    # Streaming is not used; it yields the same single result.
-    async def create_stream(self, messages, **kwargs):
-        yield await self.create(messages, **kwargs)
 
-    # Nothing to close: there is no connection.
-    async def close(self):
-        pass
+# The editor's model: read the reviewer's list and reply with Verdict JSON.
+def editor_rule(messages):
+    draft, _ = read_task(messages)
+    review = next(m.content for m in messages if getattr(m, "source", None) == REVIEWER)
+    return edit(draft, json.loads(review)["unsupported"]).model_dump_json()
 
-    # Usage of the latest call (AutoGen's required interface).
-    def actual_usage(self):
-        return self._usage
 
-    # Same as actual_usage; totals are not tracked here.
-    def total_usage(self):
-        return self._usage
-
-    # Tokens estimated as characters / 4, as in the Part 4 budget method.
-    def count_tokens(self, messages, *, tools=[]):
-        return math.ceil(sum(len(str(m.content)) for m in messages) / 4)
-
-    # No context limit applies to this offline client.
-    def remaining_tokens(self, messages, *, tools=[]):
-        return 10**9
-
-    # The deprecated name for model_info.
-    @property
-    def capabilities(self):
-        return self.model_info
-
-    # What this client supports: JSON and structured output, no tools and no images.
-    @property
-    def model_info(self):
-        return {"vision": False, "function_calling": False, "json_output": True,
-                "structured_output": True, "family": ModelFamily.UNKNOWN}
+# Build the two agents on their offline clients. Returns: (reviewer, editor).
+def build_agents():
+    reviewer = AssistantAgent(REVIEWER, model_client=RuleClient(REVIEWER, reviewer_rule, CALLS),
+                              system_message="List every draft sentence not found verbatim in the context.")
+    editor = AssistantAgent(EDITOR, model_client=RuleClient(EDITOR, editor_rule, CALLS),
+                            output_content_type=VerdictModel,
+                            system_message="Approve the draft unchanged, or remove the listed sentences.")
+    return reviewer, editor
 
 
 # Build the two-agent team, bounded by max_turns=2 (reviewer once, editor once).
 # Returns: a RoundRobinGroupChat. custom_message_types is required for the editor's message.
 def build_team():
-    reviewer = AssistantAgent(REVIEWER, model_client=ReviewClient(REVIEWER),
-                              system_message="List every draft sentence not found verbatim in the context.")
-    editor = AssistantAgent(EDITOR, model_client=ReviewClient(EDITOR), output_content_type=VerdictModel,
-                            system_message="Approve the draft unchanged, or remove the listed sentences.")
-    return RoundRobinGroupChat([reviewer, editor], max_turns=2,
+    return RoundRobinGroupChat(list(build_agents()), max_turns=2,
                                custom_message_types=[StructuredMessage[VerdictModel]])
 
 

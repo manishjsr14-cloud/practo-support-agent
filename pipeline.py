@@ -11,6 +11,7 @@ import json
 
 from crew import run_crew
 from emergency import detect, with_emergency_note
+import governance
 from guardrails import check_policy, emergency_response, injection_phrases, refusal
 from memory import prepare_user_text, remembered_record_id, session_config, with_memory
 from mock_llm import KB08_NOTE, NO_RECORD_ID
@@ -121,6 +122,8 @@ CHAT = with_memory(run_turn)
 #   uses only the 12 policies. Returns: a validated CrewResponse.
 def ask(session_id, text, include_uploads=False):
     question = prepare_user_text(text)
+    # Part 4 budget meter: this request's count starts with the masked input.
+    governance.start(question)
     output = CHAT.invoke({"question": question, "include_uploads": include_uploads},
                          config=session_config(session_id))
     return validate_response(json.loads(output["response"]))

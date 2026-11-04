@@ -10,7 +10,6 @@ import logging
 import unittest
 from unittest.mock import patch
 
-from autogen_agentchat.agents import AssistantAgent
 from autogen_agentchat.teams import RoundRobinGroupChat
 
 import crew
@@ -63,10 +62,7 @@ class ReviewTests(unittest.TestCase):
     # Without custom_message_types the editor's StructuredMessage is not registered.
     def test_team_without_custom_message_types_fails(self):
         draft, context = self.runs[REVIEW_CASES[0]["question"]]
-        reviewer = AssistantAgent(review.REVIEWER, model_client=review.ReviewClient(review.REVIEWER))
-        editor = AssistantAgent(review.EDITOR, model_client=review.ReviewClient(review.EDITOR),
-                                output_content_type=review.VerdictModel)
-        team = RoundRobinGroupChat([reviewer, editor], max_turns=2)
+        team = RoundRobinGroupChat(list(review.build_agents()), max_turns=2)
         # AutoGen's runtime also logs the failure with a traceback; keep the test output clean.
         logging.disable(logging.CRITICAL)
         try:

@@ -1,7 +1,8 @@
 """Deterministic offline stand-in for an LLM that speaks CrewAI's ReAct text format."""
 # What: a fake "language model" for CrewAI. It never calls an API; it decides with plain
 #   rules whether to call the agent's tool, and returns the tool's result word for word.
-# Task: Part 2, Task 7; Task 8-9 added the session record id and the JSON reply.
+# Task: Part 2, Task 7; Task 8-9 added the session record id and the JSON reply; Part 4
+#   added the budget meter in call().
 #   Used by: crew.py, and the tests (tests/test_task7.py tests it directly).
 # Facts it relies on were read from the installed crewai 1.15.28 source and a captured run:
 #   tool results come back appended to the model's own assistant message as
@@ -14,6 +15,8 @@ import re
 
 from crewai.llms.base_llm import BaseLLM
 from pydantic import Field
+
+from governance import charge, prompt_text
 
 # Fixed replies, so every outcome is a plain, checkable sentence.
 NO_RECORD_ID = "No appointment record id was given in the question."
@@ -152,11 +155,19 @@ class MockLLM(BaseLLM):
     def supports_function_calling(self) -> bool:
         return False
 
+    # Part 4 budget meter: charge the prompt before any work and the reply after it.
+    # Takes and returns the same as reply().
+    def call(self, messages, tools=None, callbacks=None, available_functions=None,
+             from_task=None, from_agent=None, response_model=None):
+        charge(prompt_text(messages), call=True)
+        answer = self.reply(messages, tools, from_task, from_agent, response_model)
+        charge(answer)
+        return answer
+
     # Answer one CrewAI request with ReAct text.
     # Takes: the conversation plus CrewAI's optional arguments. Returns: either an
     #   "Action" for the agent's tool or a "Final Answer".
-    def call(self, messages, tools=None, callbacks=None, available_functions=None,
-             from_task=None, from_agent=None, response_model=None):
+    def reply(self, messages, tools=None, from_task=None, from_agent=None, response_model=None):
         self.call_log.append({"agent": getattr(from_agent, "role", None),
                               "task": getattr(from_task, "name", None), "tools": tools,
                               "response_model": getattr(response_model, "__name__", None)})

@@ -64,8 +64,10 @@ def check_appointment_status_tool(record_id: str) -> str:
 #   Retrieval Agent's tool.
 def build_crew(llm, output_model=None, session_record_id=None, include_uploads=False):
     # Same safe settings for every agent: no delegation, no tool-result cache (so the
-    # counters see every real call), and few steps so a mistake fails quickly.
-    common = {"llm": llm, "allow_delegation": False, "cache": False, "max_iter": 3, "verbose": False}
+    # counters see every real call), and few steps so a mistake fails quickly. Part 4: no
+    # task retries, so a budget stop ends the request instead of starting the task again.
+    common = {"llm": llm, "allow_delegation": False, "cache": False, "max_iter": 3, "verbose": False,
+              "max_retry_limit": 0}
     retrieval_tool = make_rag_tool(True) if include_uploads else rag_lookup_tool
     retrieval = Agent(role="Retrieval Agent", tools=[retrieval_tool],
                       goal="Quote the clinic policy that answers the customer's policy question.",
