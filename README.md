@@ -407,3 +407,71 @@ open:
 
 If time allows after Part 4, I would first fix weakness 1 by checking only the important words in a
 question, tested on new questions written before the change.
+
+## Part 4
+
+I added an AutoGen review stage after the crew's draft, governance (least autonomy, a risk class and a token budget) and a cache. It is still offline, uses `MOCK_LLM` and needs zero API keys. I committed `part4_preregistration.py` alone before any Part 4 code: it holds the review drafts, the budget method and margin, and the 20,000-character test request.
+
+PowerShell (Bash: replace `.\.venv\Scripts\python.exe` with `.venv/bin/python`; Bash not verified):
+
+```powershell
+.\.venv\Scripts\python.exe run_part4_review.py
+.\.venv\Scripts\python.exe run_part4_governance.py
+.\.venv\Scripts\python.exe run_part4_cache.py
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+### Review stage (Task 14)
+
+`review.py` runs a `RoundRobinGroupChat` of two agents, `Policy_Compliance_Reviewer` and `Final_Editor`, with `max_turns=2`. AutoGen requires agent names to be Python identifiers, so the names use underscores. The editor has `output_content_type=VerdictModel` (`approved: bool`, `final_answer: str`, `reason: str`). The team is built with `custom_message_types=[StructuredMessage[VerdictModel]]`; without it AutoGen 0.7.5 raises "not registered", and a test checks this.
+
+Both agents run on `review_client.RuleClient`, an offline model client that computes each reply from the messages it receives. The reviewer lists every draft sentence not found word for word in the retrieved chunks or the record. Fixed labels, the KB08 note and the crew's fixed fallbacks are skipped. The editor approves the draft unchanged or removes the listed sentences. Each review makes exactly 2 model calls, one per agent, with no hidden extra calls. In `pipeline.py` it runs after the crew's draft and before the output guardrail. [Review output](outputs/part4_review.txt).
+
+| Case | Draft | Expected | Got | Reason |
+|---|---|---|---|---|
+| r1 | real draft, cancellation window | approved unchanged | approved unchanged | Every policy sentence is in the sources. |
+| r2 | same + "Cancellations are always free at any time." | revised | revised (`approved=False`) | Removed 1 sentence(s) not found in the sources: 'Cancellations are always free at any time.' |
+| r3 | real draft, APT-007 + reschedule (record + KB08 note) | approved unchanged | approved unchanged | Every policy sentence is in the sources. |
+
+For r2 the final answer equals the crew's real draft. Real crew drafts are tool output word for word, so the stage approves them. I reran every Part 2 and Part 3 runner into a temporary folder after the review stage, the budget check and the cache. Five outputs and the log sample (ignoring trace ids, times and durations) matched the committed files exactly. `part2_guardrail.txt` and `part3_eval.txt` differed, but only in the emergency v2 lines already described above (e08 and one "local emergency services" line), and those differ on `main` without any Part 4 code.
+
+### Least autonomy and risk (Task 15)
+
+Only the Lookup Agent holds `check_appointment_status`. CrewAI itself would let any agent hold any tool, so `governance.check_tool_wiring()` runs on every crew build and raises `ToolWiringError` if another agent holds the record tool. In the demo I wired the tool onto the Retrieval Agent: the build was refused ("Retrieval Agent may not hold check_appointment_status; only the Lookup Agent may.") and no tool was called. This matters because the Retrieval Agent reads free-text questions, and a confused or manipulated agent with record access could reveal another patient's appointment. Keeping the tool with the one agent that needs it limits what any single mistake can expose, and no API endpoint calls the tool directly.
+
+I classify this agent as **High** risk. It handles medical-adjacent data: appointment records, fees, follow-up flags and questions that can describe symptoms or emergencies. A wrong answer could delay emergency care or leak private health information, and KB09 treats contact details and records as private. The data is fabricated and the answers are quoted rather than generated, but the risk class follows the kind of data and harm, not this demo's data. Controls I already have:
+
+| Control | Where | Risk it reduces |
+|---|---|---|
+| PII masking | `prepare_user_text` (KB09) | phone numbers stored or logged |
+| Injection block | `rules.py` phrases, before the crew and on uploads | instructions overriding the agent |
+| Groundedness check | `guardrails.py` Stage 1 + Stage 2 | unsupported answers |
+| Emergency rule | phrases + MiniLM meaning (KB08) | delayed emergency direction |
+| Admin key | `/add-document` | false policy uploads by anyone |
+| Logs | masked JSON Lines, 7-day pruning | untraceable requests; long retention |
+| Review stage | `review.py` | claims not in the sources |
+| Budget cap | `governance.py` | runaway cost or oversized input |
+
+### Budget cap
+
+I estimate tokens as ceil(characters / 4) over the masked input and every LLM call's prompt and reply, crew and review included. Over the 15 Part 3 questions, the largest request used 5026 tokens and every request made 6 LLM calls (4 crew, 2 review). The cap in `rules.py` is 2 × 5026 = 10052 tokens. The runner fails visibly if `rules.py` does not match the measurement, and none of the 15 questions is refused. Before the crew runs, I project `input tokens × 6 + 5026`. The 20,000-character request (5000 input tokens) projected 35026 tokens and was refused before the crew: 0 LLM calls, refusal reason "Budget: projected 35026 tokens ... is over the cap of 10052.", and its log line carries `"budget_exceeded": true`. A meter on every LLM call also stops a request the moment it passes the cap; a test lowers the cap to 3000 to show this. I set CrewAI's `max_retry_limit` to 0 so a stopped task is not retried. [Governance output](outputs/part4_governance.txt).
+
+### Cache (Task 16)
+
+`cache.py` keys the checked reply by the masked question (lowercased, spaces collapsed, trailing punctuation removed) and `include_uploads`. Questions with an appointment id or a remembered id are never cached. A cached turn still goes through session memory, and a test checks that its history matches an uncached turn. The cache is on in the API, off by default in `pipeline.ask`, and cleared on every upload. Timings vary between runs; the call counts are the stable evidence. [Cache output](outputs/part4_cache.txt).
+
+| Request (warm models) | Cache | LLM calls | Time |
+|---|---|---:|---:|
+| "What is the cancellation and rescheduling window?" | miss | 6 | 209.5 ms |
+| "  what is the CANCELLATION and rescheduling window " (new session) | hit | 0 | 33.1 ms |
+| Same question after an upload | miss (cache cleared) | 6 | 265.4 ms |
+
+### Limits
+
+The review stage checks verbatim support only: it cannot judge a reworded but true sentence, and with a real LLM the editor's removal could leave an awkward answer. Characters / 4 is an estimate, not a tokenizer count. The cache lives in one process and expires only on upload. `pipeline.py` (154 lines) and `api.py` (159) are slightly over my 150-line guide.
+
+All 101 tests pass. [Test results](outputs/part4_tests.txt).
+
+## What I learned in Part 4
+
+[I will write this myself]
