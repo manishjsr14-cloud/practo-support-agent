@@ -67,3 +67,12 @@ EMERGENCY_DESCRIPTIONS = (
     "Poisoning or a drug or medicine overdose.",
     "A serious injury from an accident.",
 )
+
+# Part 4, Task 15: the per-request token budget (tokens = characters / 4, counted across the
+#   masked input and every LLM call, as pre-registered in part4_preregistration.py). Measured
+#   by run_part4_governance.py over the 15 Part 3 questions (outputs/part4_governance.txt):
+#   the largest request used 5026 tokens and no request made more than 6 LLM calls.
+BUDGET_LARGEST_TOKENS = 5026
+BUDGET_MAX_CALLS = 6
+# The cap: the pre-registered margin of 2 x the largest measured request.
+BUDGET_TOKENS = 10052

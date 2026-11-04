@@ -34,6 +34,9 @@ def log_request(endpoint, session_id, question, started, status, response=None, 
              "grounded": None if response is None else response.grounded}
     if doc_id is not None:
         entry["doc_id"] = doc_id
+    # Part 4: a request refused by the budget cap is marked (only then, so other lines are unchanged).
+    if response is not None and (response.refusal_reason or "").startswith("Budget:"):
+        entry["budget_exceeded"] = True
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as log:
         log.write(json.dumps(entry) + "\n")

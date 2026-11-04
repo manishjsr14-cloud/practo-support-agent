@@ -1,0 +1,36 @@
+Part 4, Task 15: governance (offline, MOCK_LLM, zero API keys)
+Token estimate: ceil(characters / 4) over the masked input and every LLM call's prompt and reply
+
+Budget basis: the 15 questions in eval_queries.py through pipeline.ask (crew + review)
+| Id | Input tokens | LLM calls | Total tokens | Projected |
+|---|---:|---:|---:|---:|
+| e01 | 20 | 6 | 4660 | 5146 |
+| e02 | 15 | 6 | 4391 | 5116 |
+| e03 | 13 | 6 | 4634 | 5104 |
+| e04 | 13 | 6 | 4238 | 5104 |
+| e05 | 15 | 6 | 4561 | 5116 |
+| e06 | 11 | 6 | 4201 | 5092 |
+| e07 | 13 | 6 | 4063 | 5104 |
+| e08 | 12 | 6 | 2442 | 5098 |
+| e09 | 11 | 6 | 4608 | 5092 |
+| e10 | 19 | 6 | 5026 | 5140 |
+| e11 | 14 | 6 | 4692 | 5110 |
+| e12 | 10 | 6 | 4368 | 5086 |
+| e13 | 16 | 6 | 4579 | 5122 |
+| e14 | 13 | 6 | 4296 | 5104 |
+| e15 | 14 | 6 | 2456 | 5110 |
+Largest measured request: 5026 tokens; most LLM calls in one request: 6
+Cap = 2 x 5026 = 10052 tokens
+rules.py: BUDGET_LARGEST_TOKENS=5026, BUDGET_MAX_CALLS=6, BUDGET_TOKENS=10052
+rules.py matches the measurement. Questions refused by the budget check: none
+
+========================================================================
+Oversized request: 20000 characters (5000 input tokens), POST /ask
+  refused: True; refusal_reason: Budget: projected 35026 tokens (5000 input tokens x 6 calls + 5026) is over the cap of 10052.
+  LLM calls made: 0; tokens charged: 5000 (the input only); crew ran: False
+  log line (trace_id, timestamp, duration_ms omitted; question cut to 60 characters): {"endpoint": "/ask", "session_id": "budget-oversized", "question": "Please explain the cancellation and rescheduling window. Ple...", "status": 200, "refused": true, "grounded": false, "budget_exceeded": true}
+
+========================================================================
+Least autonomy: agents holding check_appointment_status in the real crew: ['Lookup Agent']
+  Record tool wired to the Retrieval Agent: ToolWiringError: Retrieval Agent may not hold check_appointment_status; only the Lookup Agent may.
+  Tool calls made: {'rag_lookup': 0, 'check_appointment_status': 0}

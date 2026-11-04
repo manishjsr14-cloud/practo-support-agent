@@ -8,10 +8,13 @@
 import math
 
 from part4_preregistration import CHARS_PER_TOKEN
+from rules import BUDGET_LARGEST_TOKENS, BUDGET_MAX_CALLS, BUDGET_TOKENS
 
 # The running cost of the current request: tokens so far, LLM calls so far, and the cap
 #   (None while measuring, so nothing is refused).
 METER = {"tokens": 0, "calls": 0, "cap": None}
+# False only while run_part4_governance.py measures the budget basis.
+ENFORCE = True
 
 # The one tool that reads appointment records, and the one agent allowed to hold it.
 RECORD_TOOL = "check_appointment_status"
@@ -63,5 +66,34 @@ def start(input_text, cap=None):
 def charge(text, call=False):
     METER["tokens"] += tokens(text)
     METER["calls"] += 1 if call else 0
+    reason = over_budget()
+    if reason:
+        raise BudgetExceeded(reason)
+
+
+# The cap to apply to a new request. Returns: BUDGET_TOKENS, or None while measuring.
+def current_cap():
+    return BUDGET_TOKENS if ENFORCE else None
+
+
+# The refusal reason if the current request has passed its cap, else None.
+def over_budget():
     if METER["cap"] is not None and METER["tokens"] > METER["cap"]:
-        raise BudgetExceeded(f"Budget: this request used {METER['tokens']} tokens, over the cap of {METER['cap']}.")
+        return f"Budget: this request used {METER['tokens']} tokens, over the cap of {METER['cap']}."
+    return None
+
+
+# Project a request's cost before the crew runs (pre-registered formula).
+# Takes: the masked input. Returns: input tokens x the most LLM calls measured + the largest
+#   measured request, in tokens.
+def projected(input_text):
+    return tokens(input_text) * BUDGET_MAX_CALLS + BUDGET_LARGEST_TOKENS
+
+
+# The check before the crew runs. Takes: the masked input. Returns: a refusal reason
+#   starting "Budget:" if the projected cost is over the cap, else None.
+def budget_reason(input_text):
+    if not ENFORCE or projected(input_text) <= BUDGET_TOKENS:
+        return None
+    return (f"Budget: projected {projected(input_text)} tokens ({tokens(input_text)} input tokens x "
+            f"{BUDGET_MAX_CALLS} calls + {BUDGET_LARGEST_TOKENS}) is over the cap of {BUDGET_TOKENS}.")

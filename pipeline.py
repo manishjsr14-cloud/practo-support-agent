@@ -1,6 +1,7 @@
 """One customer turn: clean the text, use session memory, run the crew, return a checked reply."""
 # What: ask(session_id, text) runs prepare_user_text (masking) -> memory -> injection check
-#   -> emergency rule -> crew -> review stage -> output groundedness guardrail -> schema validation.
+#   -> emergency rule -> budget check -> crew -> review stage -> output groundedness guardrail
+#   -> schema validation.
 # Task: Part 2, Tasks 8-10; Part 4 added the review stage. Used by: the runners and tests.
 # The crew's Composer only writes the answer text; the factual fields (sources, tools used,
 #   record id, escalation flag) are filled here from what the tools actually returned.
@@ -69,6 +70,15 @@ def build_response(result, include_uploads=False):
     return validate_response(data), check
 
 
+# Record this turn's details for reports and tests, and return the turn's output.
+# Takes: the final CrewResponse and any details to keep in LAST_RUN.
+# Returns: {"answer": text to store, "response": the reply as JSON}.
+def finish(response, **details):
+    LAST_RUN.clear()
+    LAST_RUN.update({"result": None, "remembered_record_id": None, "guardrail": None, **details})
+    return {"answer": response.answer, "response": response.model_dump_json()}
+
+
 # The work done inside memory for one turn.
 # Takes: {"question": prepared text, "history": this session's earlier messages,
 #   "include_uploads": Part 3's retrieval setting (only "question" is stored in history)}.
@@ -79,10 +89,7 @@ def run_turn(inputs):
     # no agent or tool ever sees it. The turn is still stored, with the refusal as answer.
     phrases = injection_phrases(question)
     if phrases:
-        response = refusal("Prompt injection detected: " + ", ".join(repr(p) for p in phrases))
-        LAST_RUN.clear()
-        LAST_RUN.update({"result": None, "remembered_record_id": None, "guardrail": None})
-        return {"answer": response.answer, "response": response.model_dump_json()}
+        return finish(refusal("Prompt injection detected: " + ", ".join(repr(p) for p in phrases)))
     # Emergency rule (added after the first guardrail run, because KB08 requires it): a
     # described emergency gets KB08's direction at once, before the crew and before the
     # groundedness check. It is a separate rule, not part of groundedness.
@@ -91,26 +98,31 @@ def run_turn(inputs):
     #   the normal pipeline and then puts the emergency note and KB08's direction at the top.
     found = detect(question)
     if found["phrases"]:
-        response = emergency_response(found["phrases"])
-        LAST_RUN.clear()
-        LAST_RUN.update({"result": None, "remembered_record_id": None, "guardrail": None,
-                         "emergency": found["phrases"], "emergency_detail": found})
-        return {"answer": response.answer, "response": response.model_dump_json()}
+        return finish(emergency_response(found["phrases"]), emergency=found["phrases"], emergency_detail=found)
+    # Budget check (Part 4): refuse before the crew if the projected cost is over the cap.
+    reason = governance.budget_reason(question)
+    if reason:
+        return finish(refusal(reason), budget=reason)
     record_id = remembered_record_id(question, inputs["history"])
     include_uploads = inputs.get("include_uploads", False)
-    result = run_crew(question, output_model=CrewResponse, session_record_id=record_id,
-                      include_uploads=include_uploads)
-    # Review stage (Part 4): AutoGen's reviewer and editor check the draft against the
-    # retrieved context and record, before the output guardrail sees it.
-    verdict, _ = review_draft(result["pydantic"].answer, crew_context(result))
+    try:
+        result = run_crew(question, output_model=CrewResponse, session_record_id=record_id,
+                          include_uploads=include_uploads)
+        # Review stage (Part 4): AutoGen's reviewer and editor check the draft against the
+        # retrieved context and record, before the output guardrail sees it.
+        verdict, _ = review_draft(result["pydantic"].answer, crew_context(result))
+    except Exception:
+        # The budget meter stopped the request mid-run: refuse rather than go over the cap.
+        reason = governance.over_budget()
+        if reason is None:
+            raise
+        return finish(refusal(reason), budget=reason)
     result["pydantic"] = result["pydantic"].model_copy(update={"answer": verdict.final_answer})
     response, check = build_response(result, include_uploads)
     if found["v2"]:
         response = with_emergency_note(response)
-    LAST_RUN.clear()
-    LAST_RUN.update({"result": result, "remembered_record_id": record_id, "guardrail": check,
-                     "emergency_note": found if found["v2"] else None, "review": verdict})
-    return {"answer": response.answer, "response": response.model_dump_json()}
+    return finish(response, result=result, remembered_record_id=record_id, guardrail=check,
+                  emergency_note=found if found["v2"] else None, review=verdict)
 
 
 # The memory-wrapped turn, built once and shared by every session.
@@ -123,7 +135,11 @@ CHAT = with_memory(run_turn)
 def ask(session_id, text, include_uploads=False):
     question = prepare_user_text(text)
     # Part 4 budget meter: this request's count starts with the masked input.
-    governance.start(question)
-    output = CHAT.invoke({"question": question, "include_uploads": include_uploads},
-                         config=session_config(session_id))
+    governance.start(question, governance.current_cap())
+    try:
+        output = CHAT.invoke({"question": question, "include_uploads": include_uploads},
+                             config=session_config(session_id))
+    finally:
+        # The cap belongs to this request only; its counts stay readable for reports.
+        governance.METER["cap"] = None
     return validate_response(json.loads(output["response"]))

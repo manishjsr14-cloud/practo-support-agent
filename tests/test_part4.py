@@ -1,6 +1,6 @@
 """Check the Part 4 review stage and governance."""
 # What: the reviewer and editor rules, the bounded two-agent team, the three
-#   pre-registered review cases and the least-autonomy tool wiring.
+#   pre-registered review cases, the least-autonomy tool wiring and the budget cap.
 # Task: Part 4 tests. Used by: "python -m unittest discover -s tests".
 
 import settings  # noqa: F401  (must come before any framework import)
@@ -13,10 +13,13 @@ from unittest.mock import patch
 from autogen_agentchat.teams import RoundRobinGroupChat
 
 import crew
+from eval_queries import EVAL_QUERIES
 import governance
-import review
+from memory import prepare_user_text
 from mock_llm import MockLLM
-from part4_preregistration import INJECTED_SENTENCE, REVIEW_CASES
+from part4_preregistration import INJECTED_SENTENCE, OVERSIZED_REQUEST, REVIEW_CASES
+import pipeline
+import review
 from schema import CrewResponse
 
 
@@ -88,6 +91,35 @@ class ToolWiringTests(unittest.TestCase):
                 crew.run_crew("What is the status of APT-007?")
         self.assertIn("Retrieval Agent may not hold check_appointment_status", str(caught.exception))
         self.assertEqual(crew.COUNTS, {"rag_lookup": 0, "check_appointment_status": 0})
+
+
+class BudgetTests(unittest.TestCase):
+    # Leave the meter counting only, whatever a test did.
+    def tearDown(self):
+        governance.start("", None)
+
+    # None of the 15 Part 3 questions is refused by the budget, before or during the run.
+    def test_eval_questions_are_not_refused_by_budget(self):
+        for case in EVAL_QUERIES:
+            self.assertIsNone(governance.budget_reason(prepare_user_text(case["query"])), case["id"])
+            response = pipeline.ask(f"test-budget-{case['id']}", case["query"])
+            self.assertFalse((response.refusal_reason or "").startswith("Budget:"), case["id"])
+
+    # The oversized request is refused before the crew runs: no LLM call at all.
+    def test_oversized_request_refused_before_crew(self):
+        response = pipeline.ask("test-budget-oversized", OVERSIZED_REQUEST)
+        self.assertTrue(response.refused)
+        self.assertTrue(response.refusal_reason.startswith("Budget:"))
+        self.assertEqual(governance.METER["calls"], 0)
+        self.assertIsNone(pipeline.LAST_RUN["result"])
+
+    # A request that passes the projection but runs over the cap is stopped mid-run and refused.
+    def test_meter_stops_a_request_mid_run(self):
+        with patch.object(governance, "BUDGET_LARGEST_TOKENS", 0), patch.object(governance, "BUDGET_TOKENS", 3000):
+            response = pipeline.ask("test-budget-midrun", "What is the cancellation and rescheduling window?")
+        self.assertTrue(response.refusal_reason.startswith("Budget: this request used"))
+        self.assertLess(governance.METER["calls"], 6)
+        self.assertGreater(governance.METER["tokens"], 3000)
 
 
 if __name__ == "__main__":
