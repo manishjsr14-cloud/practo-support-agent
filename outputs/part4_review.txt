@@ -1,0 +1,88 @@
+Part 4, Task 14: AutoGen review stage (offline ReviewClient, zero API keys)
+Team: RoundRobinGroupChat([Policy_Compliance_Reviewer, Final_Editor], max_turns=2, custom_message_types=[StructuredMessage[VerdictModel]])
+VerdictModel fields: ['approved', 'final_answer', 'reason']
+
+========================================================================
+[r1] What is the cancellation and rescheduling window?
+Injected sentence: None
+--- Draft given to the review team
+  Retrieval result:
+  You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+  
+  Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.
+  
+  The support service explains these rules, but clinic staff must make booking changes and approve refunds.
+  Sources: 02_cancellation_rescheduling, 02_cancellation_rescheduling, 02_cancellation_rescheduling
+  Top-1 similarity: 0.548343599
+  
+  Lookup result:
+  No appointment record id was given in the question.
+--- Policy_Compliance_Reviewer reply: {"unsupported": []}
+--- Final_Editor verdict (StructuredMessage[VerdictModel]):
+  approved: True
+  reason: Every policy sentence is in the sources.
+  final_answer equals the given draft: True
+  final_answer equals the crew's real draft: True
+Model calls: {'Policy_Compliance_Reviewer': 1, 'Final_Editor': 1}; team messages: 3 (task, reviewer, editor)
+Expected: approved unchanged; got: approved unchanged
+
+========================================================================
+[r2] What is the cancellation and rescheduling window?
+Injected sentence: 'Cancellations are always free at any time.'
+--- Draft given to the review team
+  Retrieval result:
+  You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+  
+  Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.
+  
+  The support service explains these rules, but clinic staff must make booking changes and approve refunds.
+  Sources: 02_cancellation_rescheduling, 02_cancellation_rescheduling, 02_cancellation_rescheduling
+  Top-1 similarity: 0.548343599
+  
+  Lookup result:
+  No appointment record id was given in the question. Cancellations are always free at any time.
+--- Policy_Compliance_Reviewer reply: {"unsupported": ["Cancellations are always free at any time."]}
+--- Final_Editor verdict (StructuredMessage[VerdictModel]):
+  approved: False
+  reason: Removed 1 sentence(s) not found in the sources: 'Cancellations are always free at any time.'
+  final_answer equals the given draft: False
+  final_answer equals the crew's real draft: True
+Model calls: {'Policy_Compliance_Reviewer': 1, 'Final_Editor': 1}; team messages: 3 (task, reviewer, editor)
+Expected: revised; got: revised
+
+========================================================================
+[r3] What is the status of APT-007 and can I reschedule it?
+Injected sentence: None
+--- Draft given to the review team
+  Retrieval result:
+  You can cancel or reschedule without a change fee if clinic staff receive your request at least 24 hours before the appointment starts. A cancellation within this window receives a full refund of the consultation fee recorded for the appointment; a later patient cancellation or a No-Show receives no consultation-fee refund.
+  
+  Rescheduling depends on an available slot, keeps your original paid consultation fee, and is confirmed only when staff mark the appointment Rescheduled. If the clinic cancels, you receive a full consultation-fee refund regardless of notice, and approved refunds return to the original payment method within seven business days.
+  
+  The support service explains these rules, but clinic staff must make booking changes and approve refunds.
+  Sources: 02_cancellation_rescheduling, 02_cancellation_rescheduling, 02_cancellation_rescheduling
+  Top-1 similarity: 0.501042783
+  
+  Lookup result:
+  record_id: APT-007; status: Cancelled; consultation_fee_inr: 500; follow_up_required: True; days_since_created: 25; escalation_score: 0.9333333333333333
+  
+  Note: the escalation score is an administrative follow-up flag, not a medical assessment (KB08).
+--- Policy_Compliance_Reviewer reply: {"unsupported": []}
+--- Final_Editor verdict (StructuredMessage[VerdictModel]):
+  approved: True
+  reason: Every policy sentence is in the sources.
+  final_answer equals the given draft: True
+  final_answer equals the crew's real draft: True
+Model calls: {'Policy_Compliance_Reviewer': 1, 'Final_Editor': 1}; team messages: 3 (task, reviewer, editor)
+Expected: approved unchanged; got: approved unchanged
+
+========================================================================
+Inside pipeline.ask: What is the cancellation and rescheduling window?
+  review approved: True; reason: Every policy sentence is in the sources.
+  model calls: {'Policy_Compliance_Reviewer': 1, 'Final_Editor': 1}; grounded: True; sources: ['02_cancellation_rescheduling']
+
+| Case | Expected | Got | approved |
+|---|---|---|---|
+| r1 | approved unchanged | approved unchanged | True |
+| r2 | revised | revised | False |
+| r3 | approved unchanged | approved unchanged | True |
