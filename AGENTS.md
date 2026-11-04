@@ -15,7 +15,7 @@
 
 ## Scope and working rules
 
-- Work only on Part 3, Tasks 11-13.
+- Work only on Part 4, Tasks 14-16.
 - Keep supplied `dataset.py`, `data/appointments.json` and `kb/` byte-identical. Their inherited formatting and length are exceptions to the new-file simplicity rules. `requirements.txt` was updated in the dependency migration; the original is kept as `requirements-part1.txt`.
 - Never rewrite the handwritten KB, hand-edit generated records, change dataset choices or silently relax dependency pins.
 - Show planned files before coding. Use readable code and ordinary comments so I can explain it.
@@ -121,11 +121,34 @@ The Part 2 guardrail addresses this in guardrails.py.
 - Do not touch my existing "What I learned" section. For Part 2, add a heading "## What I learned in Part 2" with the single line "[I will write this myself]".
 - Run the tests and the relevant offline pipeline before marking any Part complete; record the actual output and failures.
 
+## Part 4 requirements
+
+Rules: follow the simplicity rules and comment style; use .\.venv\Scripts\python.exe. Do not
+change rag.py, kb/, dataset.py, any test-set or calibration file, any guardrail or emergency rule or
+threshold, or any existing outputs/ file. Part 4 writes only new outputs/part4_* files.
+
+Field names, agent count and max_turns are REQUIRED.
+
+- Task 14: an Autogen review stage after the crew's draft. A 2-agent RoundRobinGroupChat
+  (Policy-Compliance-Reviewer, Final-Editor) bounded with max_turns=2 (or MaxMessageTermination(3),
+  which counts the task message as 1). The Final-Editor uses output_content_type=VerdictModel, and the
+  team MUST be built with custom_message_types=[StructuredMessage[VerdictModel]] or it crashes.
+  VerdictModel fields exactly: approved: bool, final_answer: str, reason: str. Input: the Composer's
+  draft plus the original retrieved context. Demonstrate >=2 queries: one approved unchanged, one
+  revised (catches a deliberately injected ungrounded claim).
+- Task 15: least autonomy: only the Lookup Agent may call check_appointment_status; demonstrate that
+  wiring it to another agent is blocked, with a one-paragraph explanation. Classify risk
+  (Low/Medium/High; medical data = High) with a one-paragraph justification. Enforce a per-request
+  token/cost budget cap and demonstrate an oversized request being rejected, not silently exceeding.
+- Task 16: an in-memory cache keyed by normalized query text for the grounded-generation step;
+  demonstrate a repeated query producing a cache hit that avoids a redundant call, with before/after
+  evidence (call counter or timing).
+
 ## Session log
 
 | Part | Status | Notes |
 |---|---|---|
 | Part 1 | complete; simple rewrite | Plain top-3 baseline reproduced; all 11 tests and the full pipeline passed. Supplied inputs unchanged. Sunday-hours and Mumbai unsupported acceptances retained. Current evidence is in outputs/. README now qualifies the strategy choice and reports the measured demo. |
 | Part 2 | complete; Tasks 6-10 merged into main | Dependencies unified; .venv rebuilt from requirements.txt, Part 1 env kept as ignored .venv-part1. Task 6: lookup and percentile escalation (outputs/part2_escalation.txt). Task 7: settings.py, rag_lookup, ReAct MockLLM and three-agent crew; tool counts 1/0, 0/1, 1/1 for the three demo questions; retrieval receives only the policy clause (outputs/part2_crew.txt, byte-identical after Tasks 8-9). Tasks 8-9: memory.py (LangChain per-session history, prepare_user_text, refer-back words in rules.py), schema.py CrewResponse as output_pydantic, pipeline.ask(); A2 reuses APT-007, A3 and B1 do no lookup (outputs/part2_memory.txt). Task 10: guardrail_queries.py and guardrail_calibration.py each committed alone before any test run; KB09 phone masking in prepare_user_text, injection phrases blocked before the crew, two-stage output check (Part 1 gate, then term support with T=0.517920896 from the calibration set only). First and only run: answer 7/13, refuse 6/7, 6 false refusals, 1 false acceptance, untuned (outputs/part2_guardrail.txt). First run refused the emergency chest-pain question without KB08's direction; fixed afterwards by a separate, logged emergency rule (rules.py phrases, before the crew; emergency_queries.py committed alone first): 4/4 trigger, 3/3 quiet, no phrases added after results. Rerun: groundedness section byte-identical to the first run. Later logged change: "chest pain" added (missing an emergency is worse than an unneeded direction); only "Can you diagnose my chest pain?" changed, to the KB08 direction (table now REFUSE row 2/5; first-run table kept in README). part2_crew.txt and part2_memory.txt unchanged. All 58 tests pass (outputs/part2_tests.txt). |
-| Part 3 | complete; merged into main | api.py (/ask, /add-document, /health, /ws/chat; one lock, so requests are served one at a time; no endpoint calls check_appointment_status), uploads.py (in-memory practo_uploads; combined top-3 only with include_uploads=true, passed as a parameter), logging_utils.py (masked JSON Lines, seven-day pruning). Fix before the run: Stage 2 ignores the [PHONE_MASKED] placeholder; part2_*.txt byte-identical. eval_queries.py and judge.py each committed before the first run. First and only run: Accuracy 0.600, Grounding 0.600, Completeness 0.600, Safety 0.933; five false refusals on ordinary words; "stopped breathing" emergency missed (outputs/part3_eval.txt). All 76 tests pass (outputs/part3_tests.txt). |
-| Part 4 | not started | Out of scope. |
+| Part 3 | complete; merged into main | api.py (/ask, /add-document, /health, /ws/chat; one lock, so requests are served one at a time; no endpoint calls check_appointment_status), uploads.py (in-memory practo_uploads; combined top-3 only with include_uploads=true, passed as a parameter), logging_utils.py (masked JSON Lines, seven-day pruning). Fix before the run: Stage 2 ignores the [PHONE_MASKED] placeholder; part2_*.txt byte-identical. eval_queries.py and judge.py each committed before the first run. First and only run: Accuracy 0.600, Grounding 0.600, Completeness 0.600, Safety 0.933; five false refusals on ordinary words; "stopped breathing" emergency missed (outputs/part3_eval.txt). All 76 tests pass (outputs/part3_tests.txt). Emergency detection v2 (phrases or MiniLM meaning; two-level response: a meaning-only match keeps the normal reply with the KB08 note at the top) merged into main; 86 tests pass (outputs/part3_emergency_two_level_tests.txt). |
+| Part 4 | in progress | Tasks 14-16 on branch part4. |
