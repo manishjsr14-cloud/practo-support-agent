@@ -1,0 +1,78 @@
+"""Check the Part 4 review stage."""
+# What: the reviewer and editor rules, the bounded two-agent team, and the three
+#   pre-registered review cases.
+# Task: Part 4 tests. Used by: "python -m unittest discover -s tests".
+
+import settings  # noqa: F401  (must come before any framework import)
+
+import asyncio
+import logging
+import unittest
+
+from autogen_agentchat.agents import AssistantAgent
+from autogen_agentchat.teams import RoundRobinGroupChat
+
+import crew
+import review
+from part4_preregistration import INJECTED_SENTENCE, REVIEW_CASES
+from schema import CrewResponse
+
+
+class ReviewTests(unittest.TestCase):
+    # Run the crew once per pre-registered question and keep its draft and context.
+    @classmethod
+    def setUpClass(cls):
+        cls.runs = {}
+        for case in REVIEW_CASES:
+            if case["question"] not in cls.runs:
+                result = crew.run_crew(case["question"], output_model=CrewResponse)
+                cls.runs[case["question"]] = (result["pydantic"].answer, review.crew_context(result))
+
+    # Labels, the KB08 note and fixed fallbacks are skipped; other sentences are checked.
+    def test_policy_sentences_skip_labels_and_fixed_text(self):
+        draft = "Retrieval result:\nA rule. B rule.\nSources: x\n\nLookup result:\n" + review.KB08_NOTE
+        self.assertEqual(review.policy_sentences(draft), ["A rule.", "B rule."])
+
+    # The editor approves an empty list unchanged and removes listed sentences otherwise.
+    def test_edit_rules(self):
+        self.assertEqual(review.edit("A. B.", []).model_dump(),
+                         {"approved": True, "final_answer": "A. B.", "reason": "Every policy sentence is in the sources."})
+        verdict = review.edit("A. B.", ["B."])
+        self.assertEqual((verdict.approved, verdict.final_answer), (False, "A."))
+        self.assertIn("'B.'", verdict.reason)
+
+    # Each pre-registered case gets its expected verdict, with one call per agent.
+    def test_preregistered_cases(self):
+        for case in REVIEW_CASES:
+            draft, context = self.runs[case["question"]]
+            given = f"{draft} {case['inject']}" if case["inject"] else draft
+            verdict, messages = review.review_draft(given, context)
+            self.assertEqual(review.CALLS, {review.REVIEWER: 1, review.EDITOR: 1})
+            self.assertEqual(len(messages), 3)
+            if case["expect"] == "approved unchanged":
+                self.assertTrue(verdict.approved)
+                self.assertEqual(verdict.final_answer, given)
+            else:
+                self.assertFalse(verdict.approved)
+                self.assertEqual(verdict.final_answer, draft)
+                self.assertIn(INJECTED_SENTENCE, verdict.reason)
+
+    # Without custom_message_types the editor's StructuredMessage is not registered.
+    def test_team_without_custom_message_types_fails(self):
+        draft, context = self.runs[REVIEW_CASES[0]["question"]]
+        reviewer = AssistantAgent(review.REVIEWER, model_client=review.ReviewClient(review.REVIEWER))
+        editor = AssistantAgent(review.EDITOR, model_client=review.ReviewClient(review.EDITOR),
+                                output_content_type=review.VerdictModel)
+        team = RoundRobinGroupChat([reviewer, editor], max_turns=2)
+        # AutoGen's runtime also logs the failure with a traceback; keep the test output clean.
+        logging.disable(logging.CRITICAL)
+        try:
+            with self.assertRaises(Exception) as caught:
+                asyncio.run(team.run(task=review.task_text(draft, context)))
+        finally:
+            logging.disable(logging.NOTSET)
+        self.assertIn("not registered", str(caught.exception))
+
+
+if __name__ == "__main__":
+    unittest.main()
