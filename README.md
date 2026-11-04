@@ -374,8 +374,6 @@ All outputs produced before emergency v2 (Part 1-3 files) were made with phrase-
 
 ## What I learned in Part 3
 
-## What I learned in Part 3
-
 I wrote the 15 test questions and the scoring rules before running anything, so they could not be
 changed later to make the results look better. This made my low scores honest evidence of real
 weaknesses instead of something hidden. Some weaknesses were fixed in Part 3 and some are still
