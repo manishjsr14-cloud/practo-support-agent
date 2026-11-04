@@ -374,4 +374,38 @@ All outputs produced before emergency v2 (Part 1-3 files) were made with phrase-
 
 ## What I learned in Part 3
 
-[I will write this myself]
+## What I learned in Part 3
+
+I wrote the 15 test questions and the scoring rules before running anything, so they could not be
+changed later to make the results look better. This made my low scores honest evidence of real
+weaknesses instead of something hidden. Some weaknesses were fixed in Part 3 and some are still
+open:
+
+1. A strict filter refuses some good questions (not fixed). Seven questions got a perfect score,
+   but five good questions were refused because one ordinary word in each, such as "details",
+   "visit" or "quickly", did not appear in the policy text. The same problem appeared in Part 2's
+   guardrail test, so two separate tests point to the same cause.
+
+2. Exact words are not enough for emergencies (mostly solved). "My child has stopped breathing" was
+   missed because my emergency list only had "not breathing". I added detection by meaning, which
+   catches it, and the emergency advice now comes first in the reply. Some calm questions, such as
+   ones about insurance or an X-ray report, still get an extra safety note. They keep their normal
+   answer, but the note is a false alarm.
+
+3. The small model has a limit (a known limit). The language model rated "My baby is turning blue"
+   as less like an emergency than "Can I get a second opinion on my heart scan?". Wherever I set the
+   line, either a real emergency is missed or calm questions get flagged, so I chose safety first.
+   This cannot be fully fixed offline; it would need a bigger model or a trained classifier.
+
+4. The knowledge base needed a lock (mostly solved). /add-document lets people add text that the
+   agent can quote, so I made it require a secret key and check uploaded text for tricks like
+   "ignore previous instructions". There are still no user accounts, and an upload could still
+   contain false policy text, although it is only used when uploads are switched on.
+
+5. A rehearsal is not the performance (solved on Windows). The automated tests used a test client
+   that imitates the server, so I also started the real server (uvicorn) and sent a live question
+   myself. It returned the correct Dermatology fee, which showed the whole system works the way a
+   grader will use it. The Bash commands for Mac and Linux are still not tested.
+
+If time allows after Part 4, I would first fix weakness 1 by checking only the important words in a
+question, tested on new questions written before the change.
