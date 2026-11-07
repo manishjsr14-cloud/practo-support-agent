@@ -44,6 +44,23 @@ The runner overwrites current `outputs/` reports: dataset, KB validation, index,
 
 Both collections are deleted/rebuilt using `upsert()` with parent IDs. Fixed chunks use 320 characters with 80 overlap (39 chunks); sentence chunks use 2 sentences (36 chunks). Search returns the closest 3 chunks directly; similarity = 1 − cosine distance. [Index](outputs/index.txt) · [Sample chunks from both collections](outputs/sample_retrieval.txt).
 
+## Repository layout
+
+The project keeps a flat layout on purpose so each file can be read on its own.
+
+| Group | Files | Purpose |
+|---|---|---|
+| Data and knowledge base | `dataset.py`, `data/appointments.json`, `kb/` (12 policy files) | The supplied 50 fabricated appointments and the 12 handwritten policies (kept byte-identical) |
+| Part 1 RAG core | `rag.py`, `queries.py`, `evaluate.py`, `demo.py`, `run_part1.py` | Chunking, MiniLM embeddings, the two Chroma collections, calibration, evaluation and demo |
+| Part 2 crew | `settings.py`, `rules.py`, `tools.py`, `mock_llm.py`, `crew.py`, `memory.py`, `schema.py`, `pipeline.py`, `guardrails.py`, `emergency.py`; runners `run_task6.py`, `run_task7.py`, `run_task8_9.py`, `run_task10.py`, `evaluate_guardrail.py` | Offline flags, escalation rules, the three-agent crew, session memory, the structured reply, guardrails and the emergency rule |
+| Part 3 API and evaluation | `api.py`, `uploads.py`, `logging_utils.py`, `eval_queries.py`, `judge.py`; runners `run_part3_demo.py`, `run_part3_eval.py`, `evaluate_emergency_v2.py` | FastAPI endpoints, uploads, masked logs, the MockJudge evaluation and the emergency v2 measurement |
+| Part 4 review and governance | `review.py`, `review_client.py`, `governance.py`, `cache.py`, `part4_preregistration.py`; runners `run_part4_review.py`, `run_part4_governance.py`, `run_part4_cache.py` | The AutoGen review stage, tool wiring and budget cap, and the cache |
+| Groundedness v2 | `groundedness_v2.py`; runner `evaluate_groundedness_v2.py` | The adopted average-support Stage 2 rule and its v1 vs v2 comparison |
+| Pre-registered test sets and calibration | `guardrail_queries.py`, `guardrail_calibration.py`, `emergency_queries.py`, `emergency_calibration.py`, `emergency_v2_queries.py`, `groundedness_v2_queries.py` | Questions and calibration sets committed before the code they measure, never edited |
+| Transcripts | `outputs/` | Real saved outputs for every task |
+| Tests | `tests/` (11 test files) | Automated checks for every Part and experiment |
+| Setup and docs | `requirements.txt`, `requirements-part1.txt`, `.gitignore`, `README.md`, `AGENTS.md` | Pinned dependencies (current and Part 1), ignored folders, this report and the working rules |
+
 ## Calibration
 
 I use the unchanged questions and midpoint `(max_out + min_in) / 2`; overlapping clusters fail and missing calibration raises a clear error. [Measurements](outputs/calibration.txt) · [Saved thresholds](outputs/calibration.json).
