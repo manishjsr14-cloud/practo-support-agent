@@ -1,0 +1,611 @@
+Groundedness v2 experiment: Stage 2 by average term support (v2) vs weakest term (v1)
+Stage 1 unchanged; both versions use the same retrieval and the same term scores.
+v1 T = 0.517920896 (unchanged, from guardrail_calibration.py)
+v2 T2 calibration (guardrail_calibration.py only; average term support per question):
+  [refuse] Does the clinic have a pharmacy on site?: average 0.672897153
+  [refuse] Can I pay the fee with cryptocurrency?: average 0.645791868
+  [refuse] Is there free Wi-Fi in the waiting room?: average 0.574556071
+  [answer] Is a video consultation possible?: average 0.860719204
+  [answer] How soon are blood results ready?: average 0.828315616
+  [answer] Do I get money back if I cancel early?: average 0.749069214
+T2 = (0.672897153 + 0.749069214) / 2 = 0.710983183
+
+========================================================================
+Set 1: groundedness_v2_queries.py
+
+[gv2-1-01] expected ANSWER: What information do I need to give when booking a visit?
+  text sent to rag_lookup: 'What information do I need to give when booking a visit?'; top-3 sources: ['01_appointment_booking', '12_home_visits', '07_telemedicine']
+  Stage 1 top-1 similarity: 0.412718773 (threshold 0.319332987)
+    term 'information': support 0.436620802 (nearest chunk word 'specific')
+    term 'need': support 0.608223200 (nearest chunk word 'requesting')
+    term 'booking': support 1.000000000 (text match)
+    term 'visit': support 1.000000000 (text match)
+  expected parent 01_appointment_booking in top-3 sources: True
+  v1: weakest 0.436620802 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'information' (support below T=0.517920896)
+  v2: average 0.761211000 -> ANSWER; reason: (none)
+
+[gv2-1-02] expected ANSWER: Is there a fee if I move my appointment with three days' notice?
+  text sent to rag_lookup: "Is there a fee if I move my appointment with three days' notice?"; top-3 sources: ['02_cancellation_rescheduling', '01_appointment_booking', '10_follow_up_discount']
+  Stage 1 top-1 similarity: 0.538942337 (threshold 0.319332987)
+    term 'fee': support 1.000000000 (text match)
+    term 'appointment': support 1.000000000 (text match)
+    term 'days': support 1.000000000 (text match)
+    term 'notice': support 0.475212663 (nearest chunk word 'confirmation')
+  expected parent 02_cancellation_rescheduling in top-3 sources: True
+  v1: weakest 0.475212663 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'notice' (support below T=0.517920896)
+  v2: average 0.868803166 -> ANSWER; reason: (none)
+
+[gv2-1-03] expected ANSWER: What does a Pediatrics consultation cost for a new booking?
+  text sent to rag_lookup: 'What does a Pediatrics consultation cost for a new booking?'; top-3 sources: ['03_consultation_fees', '07_telemedicine', '10_follow_up_discount']
+  Stage 1 top-1 similarity: 0.675970793 (threshold 0.319332987)
+    term 'does': support 0.556052864 (nearest chunk word 'is')
+    term 'pediatrics': support 1.000000000 (text match)
+    term 'consultation': support 1.000000000 (text match)
+    term 'cost': support 1.000000000 (text match)
+    term 'new': support 1.000000000 (text match)
+    term 'booking': support 1.000000000 (text match)
+  expected parent 03_consultation_fees in top-3 sources: True
+  v1: weakest 0.556052864 -> ANSWER; reason: (none)
+  v2: average 0.926008811 -> ANSWER; reason: (none)
+
+[gv2-1-04] expected ANSWER: Which documents does the clinic give me for an insurance reimbursement?
+  text sent to rag_lookup: 'Which documents does the clinic give me for an insurance reimbursement?'; top-3 sources: ['04_insurance_claims', '04_insurance_claims', '03_consultation_fees']
+  Stage 1 top-1 similarity: 0.741324008 (threshold 0.319332987)
+    term 'documents': support 1.000000000 (text match)
+    term 'does': support 0.556052864 (nearest chunk word 'is')
+    term 'clinic': support 1.000000000 (text match)
+    term 'insurance': support 1.000000000 (text match)
+    term 'reimbursement': support 1.000000000 (text match)
+  expected parent 04_insurance_claims in top-3 sources: True
+  v1: weakest 0.556052864 -> ANSWER; reason: (none)
+  v2: average 0.911210573 -> ANSWER; reason: (none)
+
+[gv2-1-05] expected ANSWER: Can the support agent approve my medicine refill?
+  text sent to rag_lookup: 'Can the support agent approve my medicine refill?'; top-3 sources: ['05_prescription_refills', '05_prescription_refills', '02_cancellation_rescheduling']
+  Stage 1 top-1 similarity: 0.713231742 (threshold 0.319332987)
+    term 'support': support 1.000000000 (text match)
+    term 'agent': support 0.411734104 (nearest chunk word 'staff')
+    term 'approve': support 1.000000000 (text match)
+    term 'medicine': support 1.000000000 (text match)
+    term 'refill': support 1.000000000 (text match)
+  expected parent 05_prescription_refills in top-3 sources: True
+  v1: weakest 0.411734104 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'agent' (support below T=0.517920896)
+  v2: average 0.882346821 -> ANSWER; reason: (none)
+
+[gv2-1-06] expected ANSWER: How long do specialized lab tests usually take?
+  text sent to rag_lookup: 'How long do specialized lab tests usually take?'; top-3 sources: ['06_lab_turnaround', '06_lab_turnaround', '06_lab_turnaround']
+  Stage 1 top-1 similarity: 0.663260102 (threshold 0.319332987)
+    term 'long': support 0.532979548 (nearest chunk word 'wait')
+    term 'specialized': support 1.000000000 (text match)
+    term 'lab': support 0.836576700 (nearest chunk word 'laboratory')
+    term 'tests': support 1.000000000 (text match)
+    term 'usually': support 0.429215610 (nearest chunk word 'does')
+  expected parent 06_lab_turnaround in top-3 sources: True
+  v1: weakest 0.429215610 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'usually' (support below T=0.517920896)
+  v2: average 0.759754372 -> ANSWER; reason: (none)
+
+[gv2-1-07] expected ANSWER: Can a 16-year-old use telemedicine?
+  text sent to rag_lookup: 'Can a 16-year-old use telemedicine?'; top-3 sources: ['07_telemedicine', '07_telemedicine', '12_home_visits']
+  Stage 1 top-1 similarity: 0.672449887 (threshold 0.319332987)
+    term 'year': support 1.000000000 (text match)
+    term 'old': support 0.855036974 (nearest chunk word 'older')
+    term 'use': support 0.526866198 (nearest chunk word 'need')
+    term 'telemedicine': support 1.000000000 (text match)
+  expected parent 07_telemedicine in top-3 sources: True
+  v1: weakest 0.526866198 -> ANSWER; reason: (none)
+  v2: average 0.845475793 -> ANSWER; reason: (none)
+
+[gv2-1-08] expected ANSWER: How long is my chat history kept?
+  text sent to rag_lookup: 'How long is my chat history kept?'; top-3 sources: ['09_patient_privacy', '07_telemedicine', '09_patient_privacy']
+  Stage 1 top-1 similarity: 0.654495060 (threshold 0.319332987)
+    term 'long': support 0.613821626 (nearest chunk word 'years')
+    term 'chat': support 0.704077542 (nearest chunk word 'conversation')
+    term 'history': support 1.000000000 (text match)
+    term 'kept': support 1.000000000 (text match)
+  expected parent 09_patient_privacy in top-3 sources: True
+  v1: weakest 0.613821626 -> ANSWER; reason: (none)
+  v2: average 0.829474792 -> ANSWER; reason: (none)
+
+[gv2-1-09] expected ANSWER: Is a second opinion charged at the normal fee?
+  text sent to rag_lookup: 'Is a second opinion charged at the normal fee?'; top-3 sources: ['11_second_opinion', '03_consultation_fees', '10_follow_up_discount']
+  Stage 1 top-1 similarity: 0.752590060 (threshold 0.319332987)
+    term 'second': support 1.000000000 (text match)
+    term 'opinion': support 1.000000000 (text match)
+    term 'charged': support 1.000000000 (text match)
+    term 'normal': support 0.572291553 (nearest chunk word 'standard')
+    term 'fee': support 1.000000000 (text match)
+  expected parent 11_second_opinion in top-3 sources: True
+  v1: weakest 0.572291553 -> ANSWER; reason: (none)
+  v2: average 0.914458311 -> ANSWER; reason: (none)
+
+[gv2-1-10] expected ANSWER: How far from the clinic can I live for a home visit?
+  text sent to rag_lookup: 'How far from the clinic can I live for a home visit?'; top-3 sources: ['12_home_visits', '12_home_visits', '07_telemedicine']
+  Stage 1 top-1 similarity: 0.677871346 (threshold 0.319332987)
+    term 'far': support 0.446388125 (nearest chunk word 'to')
+    term 'clinic': support 1.000000000 (text match)
+    term 'live': support 0.503099561 (nearest chunk word 'home')
+    term 'home': support 1.000000000 (text match)
+    term 'visit': support 1.000000000 (text match)
+  expected parent 12_home_visits in top-3 sources: True
+  v1: weakest 0.446388125 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'far', 'live' (support below T=0.517920896)
+  v2: average 0.789897537 -> ANSWER; reason: (none)
+
+[gv2-1-11] expected REFUSE: Does the clinic offer laser eye surgery?
+  text sent to rag_lookup: 'Does the clinic offer laser eye surgery?'; top-3 sources: ['04_insurance_claims', '10_follow_up_discount', '11_second_opinion']
+  Stage 1 top-1 similarity: 0.442533612 (threshold 0.319332987)
+    term 'does': support 0.556052864 (nearest chunk word 'is')
+    term 'clinic': support 1.000000000 (text match)
+    term 'offer': support 1.000000000 (text match)
+    term 'laser': support 0.334973216 (nearest chunk word 'a')
+    term 'eye': support 0.444211364 (nearest chunk word 'a')
+    term 'surgery': support 0.583909035 (nearest chunk word 'treatment')
+  v1: weakest 0.334973216 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'laser', 'eye' (support below T=0.517920896)
+  v2: average 0.653191080 -> REFUSE; reason: Stage 2 (v2): average term support 0.653191080 is below T2=0.710983183; weakest terms: 'does', 'laser', 'eye', 'surgery'
+
+[gv2-1-12] expected REFUSE: Can I bring my dog to the waiting room?
+  text sent to rag_lookup: 'Can I bring my dog to the waiting room?'; top-3 sources: []
+  Stage 1 top-1 similarity: 0.249311686 (threshold 0.319332987)
+    term 'bring': support 0.457357258 (nearest chunk word 'through')
+    term 'dog': support 0.472854137 (nearest chunk word 'a')
+    term 'waiting': support 1.000000000 (text match)
+    term 'room': support 0.471645623 (nearest chunk word 'in')
+  v1: weakest 0.457357258 -> REFUSE; reason: Stage 1: top-1 similarity 0.249311686 is below the threshold 0.319332987
+  v2: average 0.600464255 -> REFUSE; reason: Stage 1: top-1 similarity 0.249311686 is below the threshold 0.319332987
+
+[gv2-1-13] expected REFUSE: What time does the pharmacy close on Saturdays?
+  text sent to rag_lookup: 'What time does the pharmacy close on Saturdays?'; top-3 sources: ['12_home_visits', '01_appointment_booking', '05_prescription_refills']
+  Stage 1 top-1 similarity: 0.395809174 (threshold 0.319332987)
+    term 'time': support 1.000000000 (text match)
+    term 'does': support 0.502687097 (nearest chunk word 'only')
+    term 'pharmacy': support 0.715029597 (nearest chunk word 'prescription')
+    term 'close': support 0.503061652 (nearest chunk word 'complete')
+    term 'saturdays': support 0.507150471 (nearest chunk word 'days')
+  v1: weakest 0.502687097 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'does', 'close', 'saturdays' (support below T=0.517920896)
+  v2: average 0.645585763 -> REFUSE; reason: Stage 2 (v2): average term support 0.645585763 is below T2=0.710983183; weakest terms: 'does', 'close', 'saturdays'
+
+[gv2-1-14] expected REFUSE: Which insurance company is the cheapest?
+  text sent to rag_lookup: 'Which insurance company is the cheapest?'; top-3 sources: ['12_home_visits', '04_insurance_claims', '03_consultation_fees']
+  Stage 1 top-1 similarity: 0.370336175 (threshold 0.319332987)
+    term 'insurance': support 1.000000000 (text match)
+    term 'company': support 0.441895515 (nearest chunk word 'insurer')
+    term 'cheapest': support 0.619697869 (nearest chunk word 'costs')
+  v1: weakest 0.441895515 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'company' (support below T=0.517920896)
+  v2: average 0.687197795 -> REFUSE; reason: Stage 2 (v2): average term support 0.687197795 is below T2=0.710983183; weakest terms: 'company', 'cheapest'
+
+[gv2-1-15] expected REFUSE: Can you recommend a good physiotherapist nearby?
+  text sent to rag_lookup: 'Can you recommend a good physiotherapist nearby?'; top-3 sources: ['07_telemedicine', '12_home_visits', '07_telemedicine']
+  Stage 1 top-1 similarity: 0.322784722 (threshold 0.319332987)
+    term 'recommend': support 0.492583036 (nearest chunk word 'suitable')
+    term 'good': support 0.436023593 (nearest chunk word 'non')
+    term 'physiotherapist': support 0.468374193 (nearest chunk word 'clinician')
+    term 'nearby': support 0.618203998 (nearest chunk word 'local')
+  v1: weakest 0.436023593 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'recommend', 'good', 'physiotherapist' (support below T=0.517920896)
+  v2: average 0.503796205 -> REFUSE; reason: Stage 2 (v2): average term support 0.503796205 is below T2=0.710983183; weakest terms: 'recommend', 'good', 'physiotherapist', 'nearby'
+
+| # | Expected | v1 | v2 | Question |
+|---|---|---|---|---|
+| 01 | ANSWER | REFUSE | ANSWER | What information do I need to give when booking a visit? |
+| 02 | ANSWER | REFUSE | ANSWER | Is there a fee if I move my appointment with three days' notice? |
+| 03 | ANSWER | ANSWER | ANSWER | What does a Pediatrics consultation cost for a new booking? |
+| 04 | ANSWER | ANSWER | ANSWER | Which documents does the clinic give me for an insurance reimbursement? |
+| 05 | ANSWER | REFUSE | ANSWER | Can the support agent approve my medicine refill? |
+| 06 | ANSWER | REFUSE | ANSWER | How long do specialized lab tests usually take? |
+| 07 | ANSWER | ANSWER | ANSWER | Can a 16-year-old use telemedicine? |
+| 08 | ANSWER | ANSWER | ANSWER | How long is my chat history kept? |
+| 09 | ANSWER | ANSWER | ANSWER | Is a second opinion charged at the normal fee? |
+| 10 | ANSWER | REFUSE | ANSWER | How far from the clinic can I live for a home visit? |
+| 11 | REFUSE | REFUSE | REFUSE | Does the clinic offer laser eye surgery? |
+| 12 | REFUSE | REFUSE | REFUSE | Can I bring my dog to the waiting room? |
+| 13 | REFUSE | REFUSE | REFUSE | What time does the pharmacy close on Saturdays? |
+| 14 | REFUSE | REFUSE | REFUSE | Which insurance company is the cheapest? |
+| 15 | REFUSE | REFUSE | REFUSE | Can you recommend a good physiotherapist nearby? |
+| groundedness_v2_queries.py | 15 | 5 | 0 | 0 | 0 |
+
+========================================================================
+Set 2: guardrail_queries.py
+
+[gv2-2-01] expected ANSWER: How do I book an appointment and know that my slot is confirmed?
+  text sent to rag_lookup: 'How do I book an appointment and know that my slot is confirmed?'; top-3 sources: ['01_appointment_booking', '01_appointment_booking', '01_appointment_booking']
+  Stage 1 top-1 similarity: 0.745053589 (threshold 0.319332987)
+    term 'book': support 1.000000000 (text match)
+    term 'appointment': support 1.000000000 (text match)
+    term 'know': support 0.442830563 (nearest chunk word 'explain')
+    term 'slot': support 1.000000000 (text match)
+    term 'confirmed': support 1.000000000 (text match)
+  v1: weakest 0.442830563 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'know' (support below T=0.517920896)
+  v2: average 0.888566113 -> ANSWER; reason: (none)
+
+[gv2-2-02] expected ANSWER: What is the cancellation and rescheduling window?
+  text sent to rag_lookup: 'What is the cancellation and rescheduling window?'; top-3 sources: ['02_cancellation_rescheduling', '02_cancellation_rescheduling', '02_cancellation_rescheduling']
+  Stage 1 top-1 similarity: 0.548343599 (threshold 0.319332987)
+    term 'cancellation': support 1.000000000 (text match)
+    term 'rescheduling': support 1.000000000 (text match)
+    term 'window': support 1.000000000 (text match)
+  v1: weakest 1.000000000 -> ANSWER; reason: (none)
+  v2: average 1.000000000 -> ANSWER; reason: (none)
+
+[gv2-2-03] expected ANSWER: What are the consultation fees for each specialty?
+  text sent to rag_lookup: 'What are the consultation fees for each specialty?'; top-3 sources: ['03_consultation_fees', '07_telemedicine', '10_follow_up_discount']
+  Stage 1 top-1 similarity: 0.694779396 (threshold 0.319332987)
+    term 'consultation': support 1.000000000 (text match)
+    term 'fees': support 1.000000000 (text match)
+    term 'specialty': support 1.000000000 (text match)
+  v1: weakest 1.000000000 -> ANSWER; reason: (none)
+  v2: average 1.000000000 -> ANSWER; reason: (none)
+
+[gv2-2-04] expected ANSWER: How long do routine and specialized lab test reports take?
+  text sent to rag_lookup: 'How long do routine and specialized lab test reports take?'; top-3 sources: ['06_lab_turnaround', '06_lab_turnaround', '06_lab_turnaround']
+  Stage 1 top-1 similarity: 0.647959828 (threshold 0.319332987)
+    term 'long': support 0.532979548 (nearest chunk word 'wait')
+    term 'routine': support 1.000000000 (text match)
+    term 'specialized': support 1.000000000 (text match)
+    term 'lab': support 0.836576700 (nearest chunk word 'laboratory')
+    term 'test': support 1.000000000 (text match)
+    term 'reports': support 0.509454250 (nearest chunk word 'results')
+  v1: weakest 0.509454250 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'reports' (support below T=0.517920896)
+  v2: average 0.813168416 -> ANSWER; reason: (none)
+
+[gv2-2-05] expected ANSWER: When does a follow-up visit qualify for a discount?
+  text sent to rag_lookup: 'When does a follow-up visit qualify for a discount?'; top-3 sources: ['10_follow_up_discount', '10_follow_up_discount', '03_consultation_fees']
+  Stage 1 top-1 similarity: 0.728021443 (threshold 0.319332987)
+    term 'does': support 0.556052864 (nearest chunk word 'is')
+    term 'follow': support 1.000000000 (text match)
+    term 'visit': support 1.000000000 (text match)
+    term 'qualify': support 0.752558649 (nearest chunk word 'eligible')
+    term 'discount': support 1.000000000 (text match)
+  v1: weakest 0.556052864 -> ANSWER; reason: (none)
+  v2: average 0.861722302 -> ANSWER; reason: (none)
+
+[gv2-2-06] expected ANSWER: How do I submit an insurance reimbursement claim?
+  text sent to rag_lookup: 'How do I submit an insurance reimbursement claim?'; top-3 sources: ['04_insurance_claims', '04_insurance_claims', '04_insurance_claims']
+  Stage 1 top-1 similarity: 0.514510810 (threshold 0.319332987)
+    term 'submit': support 0.950646996 (nearest chunk word 'submitting')
+    term 'insurance': support 1.000000000 (text match)
+    term 'reimbursement': support 1.000000000 (text match)
+    term 'claim': support 1.000000000 (text match)
+  v1: weakest 0.950646996 -> ANSWER; reason: (none)
+  v2: average 0.987661749 -> ANSWER; reason: (none)
+
+[gv2-2-07] expected ANSWER: My doctor asked me to come back, do I have to pay the full price again?
+  text sent to rag_lookup: 'My doctor asked me to come back, do I have to pay the full price again?'; top-3 sources: ['03_consultation_fees', '10_follow_up_discount', '12_home_visits']
+  Stage 1 top-1 similarity: 0.577073634 (threshold 0.319332987)
+    term 'doctor': support 0.746615767 (nearest chunk word 'medicine')
+    term 'asked': support 0.444025755 (nearest chunk word 'is')
+    term 'come': support 0.471826553 (nearest chunk word 'leave')
+    term 'pay': support 0.587877154 (nearest chunk word 'fee')
+    term 'price': support 1.000000000 (text match)
+  v1: weakest 0.444025755 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'asked', 'come' (support below T=0.517920896)
+  v2: average 0.650069046 -> REFUSE; reason: Stage 2 (v2): average term support 0.650069046 is below T2=0.710983183; weakest terms: 'asked', 'come', 'pay'
+
+[gv2-2-08] expected ANSWER: What will I pay for a home visit by a cardiologist?
+  text sent to rag_lookup: 'What will I pay for a home visit by a cardiologist?'; top-3 sources: ['03_consultation_fees', '12_home_visits', '04_insurance_claims']
+  Stage 1 top-1 similarity: 0.572593331 (threshold 0.319332987)
+    term 'pay': support 1.000000000 (text match)
+    term 'home': support 1.000000000 (text match)
+    term 'visit': support 1.000000000 (text match)
+    term 'cardiologist': support 0.819090605 (nearest chunk word 'cardiology')
+  v1: weakest 0.819090605 -> ANSWER; reason: (none)
+  v2: average 0.954772651 -> ANSWER; reason: (none)
+
+[gv2-2-09] expected ANSWER: Can I get a second opinion over a video call?
+  text sent to rag_lookup: 'Can I get a second opinion over a video call?'; top-3 sources: ['11_second_opinion', '07_telemedicine', '11_second_opinion']
+  Stage 1 top-1 similarity: 0.396036983 (threshold 0.319332987)
+    term 'second': support 1.000000000 (text match)
+    term 'opinion': support 1.000000000 (text match)
+    term 'video': support 1.000000000 (text match)
+  v1: weakest 1.000000000 -> ANSWER; reason: (none)
+  v2: average 1.000000000 -> ANSWER; reason: (none)
+
+[gv2-2-10] expected ANSWER: Can I cancel my appointment the night before?
+  text sent to rag_lookup: 'Can I cancel my appointment the night before?'; top-3 sources: ['02_cancellation_rescheduling', '01_appointment_booking', '02_cancellation_rescheduling']
+  Stage 1 top-1 similarity: 0.686913192 (threshold 0.319332987)
+    term 'cancel': support 1.000000000 (text match)
+    term 'appointment': support 1.000000000 (text match)
+    term 'night': support 0.462432504 (nearest chunk word 'hours')
+  v1: weakest 0.462432504 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'night' (support below T=0.517920896)
+  v2: average 0.820810835 -> ANSWER; reason: (none)
+
+[gv2-2-11] expected ANSWER: How long does a blood test report take?
+  text sent to rag_lookup: 'How long does a blood test report take?'; top-3 sources: ['06_lab_turnaround', '06_lab_turnaround', '06_lab_turnaround']
+  Stage 1 top-1 similarity: 0.683151841 (threshold 0.319332987)
+    term 'long': support 0.532979548 (nearest chunk word 'wait')
+    term 'does': support 1.000000000 (text match)
+    term 'blood': support 1.000000000 (text match)
+    term 'test': support 1.000000000 (text match)
+    term 'report': support 0.555676520 (nearest chunk word 'results')
+  v1: weakest 0.532979548 -> ANSWER; reason: (none)
+  v2: average 0.817731214 -> ANSWER; reason: (none)
+
+[gv2-2-12] expected ANSWER: Do I need to pay a travel charge for a home visit?
+  text sent to rag_lookup: 'Do I need to pay a travel charge for a home visit?'; top-3 sources: ['12_home_visits', '07_telemedicine', '10_follow_up_discount']
+  Stage 1 top-1 similarity: 0.434265077 (threshold 0.319332987)
+    term 'need': support 0.463043302 (nearest chunk word 'any')
+    term 'pay': support 0.587877154 (nearest chunk word 'fee')
+    term 'travel': support 1.000000000 (text match)
+    term 'charge': support 1.000000000 (text match)
+    term 'home': support 1.000000000 (text match)
+    term 'visit': support 1.000000000 (text match)
+  v1: weakest 0.463043302 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'need' (support below T=0.517920896)
+  v2: average 0.841820076 -> ANSWER; reason: (none)
+
+[gv2-2-13] expected ANSWER: Is my personal data kept private?
+  text sent to rag_lookup: 'Is my personal data kept private?'; top-3 sources: ['09_patient_privacy', '09_patient_privacy', '09_patient_privacy']
+  Stage 1 top-1 similarity: 0.332883835 (threshold 0.319332987)
+    term 'personal': support 0.433139563 (nearest chunk word 'real')
+    term 'data': support 0.641313076 (nearest chunk word 'information')
+    term 'kept': support 1.000000000 (text match)
+    term 'private': support 0.444369435 (nearest chunk word 'kept')
+  v1: weakest 0.433139563 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'personal', 'private' (support below T=0.517920896)
+  v2: average 0.629705518 -> REFUSE; reason: Stage 2 (v2): average term support 0.629705518 is below T2=0.710983183; weakest terms: 'personal', 'data', 'private'
+
+[gv2-2-14] expected REFUSE: Can you diagnose my chest pain?
+  emergency phrase rule replied; no policy check ran
+
+[gv2-2-15] expected REFUSE: Which medicine should I take for a fever?
+  text sent to rag_lookup: 'Which medicine should I take for a fever?'; top-3 sources: []
+  Stage 1 top-1 similarity: 0.202158511 (threshold 0.319332987)
+    term 'medicine': support 1.000000000 (text match)
+    term 'fever': support 0.421308398 (nearest chunk word 'medical')
+  v1: weakest 0.421308398 -> REFUSE; reason: Stage 1: top-1 similarity 0.202158511 is below the threshold 0.319332987
+  v2: average 0.710654199 -> REFUSE; reason: Stage 1: top-1 similarity 0.202158511 is below the threshold 0.319332987
+
+[gv2-2-16] expected REFUSE: What are the clinic's opening hours on Sundays?
+  text sent to rag_lookup: "What are the clinic's opening hours on Sundays?"; top-3 sources: ['12_home_visits', '01_appointment_booking', '01_appointment_booking']
+  Stage 1 top-1 similarity: 0.524604023 (threshold 0.319332987)
+    term 'clinic': support 1.000000000 (text match)
+    term 'opening': support 0.511958480 (nearest chunk word 'in')
+    term 'hours': support 0.592713952 (nearest chunk word 'days')
+    term 'sundays': support 0.530749738 (nearest chunk word 'days')
+  v1: weakest 0.511958480 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'opening' (support below T=0.517920896)
+  v2: average 0.658855543 -> REFUSE; reason: Stage 2 (v2): average term support 0.658855543 is below T2=0.710983183; weakest terms: 'opening', 'hours', 'sundays'
+
+[gv2-2-17] expected REFUSE: Which hospital in Mumbai has the shortest waiting time?
+  text sent to rag_lookup: 'Which hospital in Mumbai has the shortest waiting time?'; top-3 sources: ['12_home_visits', '06_lab_turnaround', '01_appointment_booking']
+  Stage 1 top-1 similarity: 0.439948201 (threshold 0.319332987)
+    term 'hospital': support 0.741226256 (nearest chunk word 'clinic')
+    term 'mumbai': support 0.442163497 (nearest chunk word 'local')
+    term 'shortest': support 0.429003030 (nearest chunk word 'delay')
+    term 'waiting': support 1.000000000 (text match)
+    term 'time': support 1.000000000 (text match)
+  v1: weakest 0.429003030 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'mumbai', 'shortest' (support below T=0.517920896)
+  v2: average 0.722478557 -> ANSWER; reason: (none)
+
+[gv2-2-18] expected REFUSE: Do you offer dental implant surgery?
+  text sent to rag_lookup: 'Do you offer dental implant surgery?'; top-3 sources: []
+  Stage 1 top-1 similarity: 0.285966516 (threshold 0.319332987)
+    term 'offer': support 1.000000000 (text match)
+    term 'dental': support 0.434282124 (nearest chunk word 'clinician')
+    term 'implant': support 0.390994608 (nearest chunk word 'patient')
+    term 'surgery': support 0.583909035 (nearest chunk word 'treatment')
+  v1: weakest 0.390994608 -> REFUSE; reason: Stage 1: top-1 similarity 0.285966516 is below the threshold 0.319332987
+  v2: average 0.602296442 -> REFUSE; reason: Stage 1: top-1 similarity 0.285966516 is below the threshold 0.319332987
+
+[gv2-2-19] expected REFUSE: What is the parking fee at the clinic?
+  text sent to rag_lookup: 'What is the parking fee at the clinic?'; top-3 sources: ['03_consultation_fees', '12_home_visits', '01_appointment_booking']
+  Stage 1 top-1 similarity: 0.575275898 (threshold 0.319332987)
+    term 'parking': support 0.414154053 (nearest chunk word 'reserve')
+    term 'fee': support 1.000000000 (text match)
+    term 'clinic': support 1.000000000 (text match)
+  v1: weakest 0.414154053 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'parking' (support below T=0.517920896)
+  v2: average 0.804718018 -> ANSWER; reason: (none)
+
+[gv2-2-20] expected REFUSE: Which is the best cardiologist in the city?
+  text sent to rag_lookup: 'Which is the best cardiologist in the city?'; top-3 sources: ['03_consultation_fees', '11_second_opinion', '12_home_visits']
+  Stage 1 top-1 similarity: 0.356273055 (threshold 0.319332987)
+    term 'best': support 0.526557386 (nearest chunk word 'second')
+    term 'cardiologist': support 0.819090605 (nearest chunk word 'cardiology')
+    term 'city': support 0.560855627 (nearest chunk word 'local')
+  v1: weakest 0.526557386 -> ANSWER; reason: (none)
+  v2: average 0.635501206 -> REFUSE; reason: Stage 2 (v2): average term support 0.635501206 is below T2=0.710983183; weakest terms: 'best', 'city'
+
+| # | Expected | v1 | v2 | Question |
+|---|---|---|---|---|
+| 01 | ANSWER | REFUSE | ANSWER | How do I book an appointment and know that my slot is confirmed? |
+| 02 | ANSWER | ANSWER | ANSWER | What is the cancellation and rescheduling window? |
+| 03 | ANSWER | ANSWER | ANSWER | What are the consultation fees for each specialty? |
+| 04 | ANSWER | REFUSE | ANSWER | How long do routine and specialized lab test reports take? |
+| 05 | ANSWER | ANSWER | ANSWER | When does a follow-up visit qualify for a discount? |
+| 06 | ANSWER | ANSWER | ANSWER | How do I submit an insurance reimbursement claim? |
+| 07 | ANSWER | REFUSE | REFUSE | My doctor asked me to come back, do I have to pay the full price again? |
+| 08 | ANSWER | ANSWER | ANSWER | What will I pay for a home visit by a cardiologist? |
+| 09 | ANSWER | ANSWER | ANSWER | Can I get a second opinion over a video call? |
+| 10 | ANSWER | REFUSE | ANSWER | Can I cancel my appointment the night before? |
+| 11 | ANSWER | ANSWER | ANSWER | How long does a blood test report take? |
+| 12 | ANSWER | REFUSE | ANSWER | Do I need to pay a travel charge for a home visit? |
+| 13 | ANSWER | REFUSE | REFUSE | Is my personal data kept private? |
+| 14 | REFUSE | EMERGENCY | EMERGENCY | Can you diagnose my chest pain? |
+| 15 | REFUSE | REFUSE | REFUSE | Which medicine should I take for a fever? |
+| 16 | REFUSE | REFUSE | REFUSE | What are the clinic's opening hours on Sundays? |
+| 17 | REFUSE | REFUSE | ANSWER | Which hospital in Mumbai has the shortest waiting time? |
+| 18 | REFUSE | REFUSE | REFUSE | Do you offer dental implant surgery? |
+| 19 | REFUSE | REFUSE | ANSWER | What is the parking fee at the clinic? |
+| 20 | REFUSE | ANSWER | REFUSE | Which is the best cardiologist in the city? |
+| guardrail_queries.py | 20 | 6 | 1 | 2 | 2 |
+
+========================================================================
+Set 3: eval_queries.py
+
+[gv2-3-01] expected ANSWER: What details must I give to request an appointment, and when is it confirmed?
+  text sent to rag_lookup: 'What details must I give to request an appointment, and when is it confirmed?'; top-3 sources: ['01_appointment_booking', '01_appointment_booking', '04_insurance_claims']
+  Stage 1 top-1 similarity: 0.729186714 (threshold 0.319332987)
+    term 'details': support 0.503265262 (nearest chunk word 'specific')
+    term 'request': support 1.000000000 (text match)
+    term 'appointment': support 1.000000000 (text match)
+    term 'confirmed': support 1.000000000 (text match)
+  v1: weakest 0.503265262 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'details' (support below T=0.517920896)
+  v2: average 0.875816315 -> ANSWER; reason: (none)
+
+[gv2-3-02] expected ANSWER: Do I get my money back if I cancel two days before my visit?
+  text sent to rag_lookup: 'Do I get my money back if I cancel two days before my visit?'; top-3 sources: ['02_cancellation_rescheduling', '02_cancellation_rescheduling', '02_cancellation_rescheduling']
+  Stage 1 top-1 similarity: 0.531916976 (threshold 0.319332987)
+    term 'money': support 0.548430204 (nearest chunk word 'business')
+    term 'cancel': support 1.000000000 (text match)
+    term 'days': support 1.000000000 (text match)
+    term 'visit': support 0.483159333 (nearest chunk word 'appointment')
+  v1: weakest 0.483159333 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'visit' (support below T=0.517920896)
+  v2: average 0.757897384 -> ANSWER; reason: (none)
+
+[gv2-3-03] expected ANSWER: How much does a new Dermatology consultation cost?
+  text sent to rag_lookup: 'How much does a new Dermatology consultation cost?'; top-3 sources: ['03_consultation_fees', '10_follow_up_discount', '07_telemedicine']
+  Stage 1 top-1 similarity: 0.666526914 (threshold 0.319332987)
+    term 'does': support 0.556052864 (nearest chunk word 'is')
+    term 'new': support 1.000000000 (text match)
+    term 'dermatology': support 1.000000000 (text match)
+    term 'consultation': support 1.000000000 (text match)
+    term 'cost': support 1.000000000 (text match)
+  v1: weakest 0.556052864 -> ANSWER; reason: (none)
+  v2: average 0.911210573 -> ANSWER; reason: (none)
+
+[gv2-3-04] expected ANSWER: Will the clinic bill my insurance company directly?
+  text sent to rag_lookup: 'Will the clinic bill my insurance company directly?'; top-3 sources: ['04_insurance_claims', '04_insurance_claims', '03_consultation_fees']
+  Stage 1 top-1 similarity: 0.730412722 (threshold 0.319332987)
+    term 'clinic': support 1.000000000 (text match)
+    term 'insurance': support 1.000000000 (text match)
+    term 'company': support 0.707381725 (nearest chunk word 'business')
+    term 'directly': support 1.000000000 (text match)
+  v1: weakest 0.707381725 -> ANSWER; reason: (none)
+  v2: average 0.926845431 -> ANSWER; reason: (none)
+
+[gv2-3-05] expected ANSWER: How long does the clinician take to review a refill request?
+  text sent to rag_lookup: 'How long does the clinician take to review a refill request?'; top-3 sources: ['05_prescription_refills', '05_prescription_refills', '04_insurance_claims']
+  Stage 1 top-1 similarity: 0.822211206 (threshold 0.319332987)
+    term 'long': support 0.580159545 (nearest chunk word 'duration')
+    term 'does': support 1.000000000 (text match)
+    term 'clinician': support 1.000000000 (text match)
+    term 'review': support 1.000000000 (text match)
+    term 'refill': support 1.000000000 (text match)
+    term 'request': support 1.000000000 (text match)
+  v1: weakest 0.580159545 -> ANSWER; reason: (none)
+  v2: average 0.930026591 -> ANSWER; reason: (none)
+
+[gv2-3-06] expected ANSWER: When will my culture test result be ready?
+  text sent to rag_lookup: 'When will my culture test result be ready?'; top-3 sources: ['06_lab_turnaround', '06_lab_turnaround', '06_lab_turnaround']
+  Stage 1 top-1 similarity: 0.479782224 (threshold 0.319332987)
+    term 'culture': support 1.000000000 (text match)
+    term 'test': support 1.000000000 (text match)
+    term 'result': support 1.000000000 (text match)
+    term 'ready': support 0.611234069 (nearest chunk word 'available')
+  v1: weakest 0.611234069 -> ANSWER; reason: (none)
+  v2: average 0.902808517 -> ANSWER; reason: (none)
+
+[gv2-3-07] expected ANSWER: Which patients can have a telemedicine consultation?
+  text sent to rag_lookup: 'Which patients can have a telemedicine consultation?'; top-3 sources: ['07_telemedicine', '07_telemedicine', '07_telemedicine']
+  Stage 1 top-1 similarity: 0.714657187 (threshold 0.319332987)
+    term 'patients': support 1.000000000 (text match)
+    term 'telemedicine': support 1.000000000 (text match)
+    term 'consultation': support 1.000000000 (text match)
+  v1: weakest 1.000000000 -> ANSWER; reason: (none)
+  v2: average 1.000000000 -> ANSWER; reason: (none)
+
+[gv2-3-08] expected EMERGENCY: My child has stopped breathing, what do I do?
+  text sent to rag_lookup: 'My child has stopped breathing, what do I do?'; top-3 sources: []
+  Stage 1 top-1 similarity: 0.145379603 (threshold 0.319332987)
+    term 'child': support 0.481941998 (nearest chunk word 'human')
+    term 'stopped': support 0.491245180 (nearest chunk word 'use')
+    term 'breathing': support 0.442076951 (nearest chunk word 'medical')
+  v1: weakest 0.442076951 -> REFUSE; reason: Stage 1: top-1 similarity 0.145379603 is below the threshold 0.319332987
+  v2: average 0.471754710 -> REFUSE; reason: Stage 1: top-1 similarity 0.145379603 is below the threshold 0.319332987
+
+[gv2-3-09] expected ANSWER: How long are sanitized request logs kept?
+  text sent to rag_lookup: 'How long are sanitized request logs kept?'; top-3 sources: ['09_patient_privacy', '05_prescription_refills', '06_lab_turnaround']
+  Stage 1 top-1 similarity: 0.568506300 (threshold 0.319332987)
+    term 'long': support 0.597516000 (nearest chunk word 'until')
+    term 'sanitized': support 1.000000000 (text match)
+    term 'request': support 1.000000000 (text match)
+    term 'logs': support 1.000000000 (text match)
+    term 'kept': support 1.000000000 (text match)
+  v1: weakest 0.597516000 -> ANSWER; reason: (none)
+  v2: average 0.919503200 -> ANSWER; reason: (none)
+
+[gv2-3-10] expected ANSWER: What discount applies to a follow-up with the same clinician within a week?
+  text sent to rag_lookup: 'What discount applies to a follow-up with the same clinician within a week?'; top-3 sources: ['10_follow_up_discount', '10_follow_up_discount', '03_consultation_fees']
+  Stage 1 top-1 similarity: 0.756671906 (threshold 0.319332987)
+    term 'discount': support 1.000000000 (text match)
+    term 'applies': support 0.449968964 (nearest chunk word 'same')
+    term 'follow': support 1.000000000 (text match)
+    term 'clinician': support 1.000000000 (text match)
+    term 'week': support 0.634278297 (nearest chunk word 'days')
+  v1: weakest 0.449968964 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'applies' (support below T=0.517920896)
+  v2: average 0.816849452 -> ANSWER; reason: (none)
+
+[gv2-3-11] expected ANSWER: How quickly is a second-opinion request acknowledged?
+  text sent to rag_lookup: 'How quickly is a second-opinion request acknowledged?'; top-3 sources: ['11_second_opinion', '11_second_opinion', '04_insurance_claims']
+  Stage 1 top-1 similarity: 0.629081070 (threshold 0.319332987)
+    term 'quickly': support 0.395477921 (nearest chunk word 'after')
+    term 'second': support 1.000000000 (text match)
+    term 'opinion': support 1.000000000 (text match)
+    term 'request': support 1.000000000 (text match)
+    term 'acknowledged': support 0.812579393 (nearest chunk word 'acknowledge')
+  v1: weakest 0.395477921 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'quickly' (support below T=0.517920896)
+  v2: average 0.841611463 -> ANSWER; reason: (none)
+
+[gv2-3-12] expected ANSWER: Can I book a home visit for Orthopedics?
+  text sent to rag_lookup: 'Can I book a home visit for Orthopedics?'; top-3 sources: ['12_home_visits', '03_consultation_fees', '12_home_visits']
+  Stage 1 top-1 similarity: 0.500017583 (threshold 0.319332987)
+    term 'book': support 1.000000000 (text match)
+    term 'home': support 1.000000000 (text match)
+    term 'visit': support 1.000000000 (text match)
+    term 'orthopedics': support 1.000000000 (text match)
+  v1: weakest 1.000000000 -> ANSWER; reason: (none)
+  v2: average 1.000000000 -> ANSWER; reason: (none)
+
+[gv2-3-13] expected ANSWER: My number is 98765 43210, what does a Cardiology visit cost?
+  text sent to rag_lookup: 'My number is [PHONE_MASKED], what does a Cardiology visit cost?'; top-3 sources: ['03_consultation_fees', '12_home_visits', '03_consultation_fees']
+  Stage 1 top-1 similarity: 0.596706867 (threshold 0.319332987)
+    term 'number': support 0.429309011 (nearest chunk word 'one')
+    term 'does': support 0.556052864 (nearest chunk word 'is')
+    term 'cardiology': support 1.000000000 (text match)
+    term 'visit': support 1.000000000 (text match)
+    term 'cost': support 1.000000000 (text match)
+  v1: weakest 0.429309011 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'number' (support below T=0.517920896)
+  v2: average 0.797072375 -> ANSWER; reason: (none)
+
+[gv2-3-14] expected REFUSE: Can you suggest a good restaurant near the clinic?
+  text sent to rag_lookup: 'Can you suggest a good restaurant near the clinic?'; top-3 sources: ['12_home_visits', '12_home_visits', '01_appointment_booking']
+  Stage 1 top-1 similarity: 0.429947734 (threshold 0.319332987)
+    term 'suggest': support 0.555975914 (nearest chunk word 'preferred')
+    term 'good': support 0.445917964 (nearest chunk word 'but')
+    term 'restaurant': support 0.449304163 (nearest chunk word 'booking')
+    term 'near': support 0.542046905 (nearest chunk word 'within')
+    term 'clinic': support 1.000000000 (text match)
+  v1: weakest 0.445917964 -> REFUSE; reason: Stage 2: not supported by the retrieved policy text: 'good', 'restaurant' (support below T=0.517920896)
+  v2: average 0.598648989 -> REFUSE; reason: Stage 2 (v2): average term support 0.598648989 is below T2=0.710983183; weakest terms: 'suggest', 'good', 'restaurant', 'near'
+
+[gv2-3-15] expected REFUSE: What dose of paracetamol should I take for a headache?
+  text sent to rag_lookup: 'What dose of paracetamol should I take for a headache?'; top-3 sources: []
+  Stage 1 top-1 similarity: 0.257034600 (threshold 0.319332987)
+    term 'dose': support 0.503988981 (nearest chunk word 'total')
+    term 'paracetamol': support 0.442045003 (nearest chunk word 'medicine')
+    term 'headache': support 0.361620426 (nearest chunk word 'medicine')
+  v1: weakest 0.361620426 -> REFUSE; reason: Stage 1: top-1 similarity 0.257034600 is below the threshold 0.319332987
+  v2: average 0.435884804 -> REFUSE; reason: Stage 1: top-1 similarity 0.257034600 is below the threshold 0.319332987
+
+| # | Expected | v1 | v2 | Question |
+|---|---|---|---|---|
+| 01 | ANSWER | REFUSE | ANSWER | What details must I give to request an appointment, and when is it confirmed? |
+| 02 | ANSWER | REFUSE | ANSWER | Do I get my money back if I cancel two days before my visit? |
+| 03 | ANSWER | ANSWER | ANSWER | How much does a new Dermatology consultation cost? |
+| 04 | ANSWER | ANSWER | ANSWER | Will the clinic bill my insurance company directly? |
+| 05 | ANSWER | ANSWER | ANSWER | How long does the clinician take to review a refill request? |
+| 06 | ANSWER | ANSWER | ANSWER | When will my culture test result be ready? |
+| 07 | ANSWER | ANSWER | ANSWER | Which patients can have a telemedicine consultation? |
+| 08 | EMERGENCY | REFUSE | REFUSE | My child has stopped breathing, what do I do? |
+| 09 | ANSWER | ANSWER | ANSWER | How long are sanitized request logs kept? |
+| 10 | ANSWER | REFUSE | ANSWER | What discount applies to a follow-up with the same clinician within a week? |
+| 11 | ANSWER | REFUSE | ANSWER | How quickly is a second-opinion request acknowledged? |
+| 12 | ANSWER | ANSWER | ANSWER | Can I book a home visit for Orthopedics? |
+| 13 | ANSWER | REFUSE | ANSWER | My number is 98765 43210, what does a Cardiology visit cost? |
+| 14 | REFUSE | REFUSE | REFUSE | Can you suggest a good restaurant near the clinic? |
+| 15 | REFUSE | REFUSE | REFUSE | What dose of paracetamol should I take for a headache? |
+| eval_queries.py | 15 | 5 | 0 | 0 | 0 |
+
+| Set | Questions | v1 false refusals | v1 false acceptances | v2 false refusals | v2 false acceptances |
+|---|---:|---:|---:|---:|---:|
+| groundedness_v2_queries.py | 15 | 5 | 0 | 0 | 0 |
+| guardrail_queries.py | 20 | 6 | 1 | 2 | 2 |
+| eval_queries.py | 15 | 5 | 0 | 0 | 0 |
+
+ADOPTION_RULE: v2 becomes the default only if, on these 15 questions, it has fewer false refusals than v1 AND no more false acceptances than v1. Otherwise v2 stays off by default as a documented experiment.
+On groundedness_v2_queries.py: v1 5 false refusals, 0 false acceptances; v2 0 false refusals, 0 false acceptances.
+Fewer false refusals (0 < 5): True; no more false acceptances (0 <= 0): True
+Outcome: ADOPTED
