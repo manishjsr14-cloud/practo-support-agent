@@ -478,7 +478,6 @@ All 101 tests pass. [Test results](outputs/part4_tests.txt).
 
 ## What I learned in Part 4
 
-## What I learned in Part 4
 
 1. A second pair of eyes catches false claims. After the crew writes its draft answer, two AutoGen
    agents check it. First the Policy-Compliance Reviewer lists every sentence that does not appear
