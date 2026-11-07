@@ -386,6 +386,8 @@ open:
    "visit" or "quickly", did not appear in the policy text. The same problem appeared in Part 2's
    guardrail test, so two separate tests point to the same cause.
 
+   Update: after Part 4 I replaced the weakest-word rule with an average (Groundedness v2). On new test questions it removed all five false refusals, but it now accepts two off-topic questions it used to refuse.
+
 2. Exact words are not enough for emergencies (mostly solved). "My child has stopped breathing" was
    missed because my emergency list only had "not breathing". I added detection by meaning, which
    catches it, and the emergency advice now comes first in the reply. Some calm questions, such as
