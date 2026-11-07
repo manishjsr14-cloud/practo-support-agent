@@ -16,6 +16,7 @@ from eval_queries import EVAL_QUERIES
 import groundedness_v2
 from groundedness_v2_queries import ADOPTION_RULE, SHOULD_ANSWER, SHOULD_REFUSE
 import guardrail_queries
+import guardrails
 from guardrails import groundedness_threshold
 from pipeline import LAST_RUN, ask
 
@@ -68,7 +69,10 @@ def errors(pairs):
 
 
 # Run all three sets and build the report text. Takes: nothing. Returns: the report.
+# The pipeline runs with v1 pinned, so the v1 column stays v1 now that v2 is the default
+#   (added after the run, when v2 was adopted; the first run used v1 as the default).
 def make_report():
+    guardrails.GROUNDEDNESS_VERSION = "v1"
     t1, t2 = groundedness_threshold()["threshold"], groundedness_v2.threshold_v2()
     lines = ["Groundedness v2 experiment: Stage 2 by average term support (v2) vs weakest term (v1)",
              "Stage 1 unchanged; both versions use the same retrieval and the same term scores.",
