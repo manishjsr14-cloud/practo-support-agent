@@ -19,6 +19,9 @@ KB08_PATH = Path(__file__).resolve().parent / "kb" / "08_emergency_protocol.md"
 
 PHONE = re.compile(PHONE_PATTERN)
 RECORD_ID = re.compile(r"APT-[0-9]{3}")
+# Which Stage 2 rule the pipeline uses: "v1" (weakest term, the default) or "v2" (average
+#   term support, an experiment in groundedness_v2.py).
+GROUNDEDNESS_VERSION = "v1"
 # Word endings removed before comparing words, so "reports" matches "report".
 SUFFIXES = (("ies", "y"), ("ing", ""), ("ed", ""), ("s", ""))
 
@@ -147,13 +150,17 @@ def groundedness_threshold():
 
 
 # Decide whether a policy answer is grounded (Stage 1, then Stage 2).
-# Takes: the text sent to rag_lookup, its result and whether uploads were searched.
-# Returns: (ok, reason, report).
-def check_policy(query, rag_result, include_uploads=False):
+# Takes: the text sent to rag_lookup, its result, whether uploads were searched and the
+#   Stage 2 version (None = GROUNDEDNESS_VERSION). Returns: (ok, reason, report).
+# The v2 experiment (average support, groundedness_v2.py) is used only when asked for.
+def check_policy(query, rag_result, include_uploads=False, version=None):
     report = support_report(query, include_uploads)
     if rag_result["fallback"]:
         return False, (f"Stage 1: top-1 similarity {rag_result['similarity']:.9f} is below "
                        f"the threshold {rag_result['threshold']:.9f}"), report
+    if (version or GROUNDEDNESS_VERSION) == "v2":
+        from groundedness_v2 import stage2_v2
+        return (*stage2_v2(report), report)
     threshold = groundedness_threshold()["threshold"]
     weak = [term for term, score, _ in report["terms"] if score < threshold]
     if weak:
