@@ -475,3 +475,33 @@ All 101 tests pass. [Test results](outputs/part4_tests.txt).
 ## What I learned in Part 4
 
 [I will write this myself]
+
+## Groundedness v2 (experiment)
+
+v1's Stage 2 refused an answer when its single weakest question term was below T, so one ordinary word such as "know" or "details" could refuse a good answer. v2 uses the same terms and the same per-term scores but refuses only when their **average** is below T2. It uses no word list, and Stage 1 is unchanged. I set T2 only from `guardrail_calibration.py`: the highest refuse average was 0.672897153 and the lowest answer average 0.749069214, so T2 = 0.710983183. I committed the test set and the adoption rule (`groundedness_v2_queries.py`) and then the runner before the first and only run, and I changed no rule or threshold afterwards.
+
+PowerShell: `.\.venv\Scripts\python.exe evaluate_groundedness_v2.py`. Bash: `.venv/bin/python evaluate_groundedness_v2.py` (Bash not verified). [Full output with every term and score](outputs/groundedness_v2.txt).
+
+Pre-registered set (10 should answer, 5 should refuse):
+
+| Question | Expected | v1 | v2 |
+|---|---|---|---|
+| What information do I need to give when booking a visit? | ANSWER | REFUSE | ANSWER |
+| Is there a fee if I move my appointment with three days' notice? | ANSWER | REFUSE | ANSWER |
+| Can the support agent approve my medicine refill? | ANSWER | REFUSE | ANSWER |
+| How long do specialized lab tests usually take? | ANSWER | REFUSE | ANSWER |
+| How far from the clinic can I live for a home visit? | ANSWER | REFUSE | ANSWER |
+| The other 5 answerable questions | ANSWER | ANSWER | ANSWER |
+| All 5 refuse questions | REFUSE | REFUSE | REFUSE |
+
+| Set | Questions | v1 false refusals | v1 false acceptances | v2 false refusals | v2 false acceptances |
+|---|---:|---:|---:|---:|---:|
+| groundedness_v2_queries.py | 15 | 5 | 0 | 0 | 0 |
+| guardrail_queries.py | 20 | 6 | 1 | 2 | 2 |
+| eval_queries.py | 15 | 5 | 0 | 0 | 0 |
+
+**Adoption decision: ADOPTED.** On the pre-registered 15 questions, v2 had fewer false refusals (0 < 5) and no more false acceptances (0 <= 0), so I made v2 the default (`GROUNDEDNESS_VERSION = "v2"` in `guardrails.py`); v1 stays available with `version="v1"`.
+
+v2 is not better everywhere. On the Part 2 guardrail set, v2 accepted two questions v1 refused: "Which hospital in Mumbai has the shortest waiting time?" and "What is the parking fee at the clinic?". It refused the one v1 accepted ("Which is the best cardiologist in the city?"), so false acceptances went from 1 to 2. Averaging lets well-matched words hide an unsupported one such as "parking". v2 still refuses q07 ("My doctor asked me to come back...") and "Is my personal data kept private?". In the eval set, e08 shows REFUSE for both versions because this table counts only the emergency *phrase* rule as EMERGENCY. Its reply still carries the KB08 emergency note from emergency v2.
+
+Existing outputs (`part2_*`, `part3_*`, `part4_*`) were made with v1 and are kept as they were; rerunning those runners now uses v2. After v2 was adopted I pinned v1 in the comparison runner, so its v1 column stays v1. That changes no rule or number. All 106 tests pass with v2 as the default. [Test results](outputs/groundedness_v2_tests.txt).
