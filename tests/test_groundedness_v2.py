@@ -1,6 +1,7 @@
 """Check the groundedness v2 experiment: average support, its threshold and the switch."""
-# What: the average arithmetic, T2's midpoint and visible failure on overlap, the v1 default,
-#   and that one weak term refuses under v1 but not under v2. Made-up reports only.
+# What: the average arithmetic, T2's midpoint and visible failure on overlap, the default
+#   (v2 after adoption), and that one weak term refuses under v1 but not under v2.
+#   Made-up reports only.
 # Task: groundedness v2 tests. Used by: "python -m unittest discover -s tests".
 
 import unittest
@@ -48,9 +49,10 @@ class GroundednessV2Tests(unittest.TestCase):
             calibrate_with(reports)
         self.assertIn("overlaps", str(caught.exception))
 
-    # v1 stays the default; v2 is used only when asked for.
-    def test_default_is_v1(self):
-        self.assertEqual(guardrails.GROUNDEDNESS_VERSION, "v1")
+    # v2 is the default after the pre-registered adoption rule passed; v1 stays available
+    #   (test_one_weak_term_v1_refuses_v2_answers calls it with version="v1").
+    def test_default_is_v2_after_adoption(self):
+        self.assertEqual(guardrails.GROUNDEDNESS_VERSION, "v2")
 
     # One weak ordinary word: v1 refuses (weakest below T), v2 answers (average above T2).
     def test_one_weak_term_v1_refuses_v2_answers(self):

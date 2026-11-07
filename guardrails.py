@@ -19,9 +19,10 @@ KB08_PATH = Path(__file__).resolve().parent / "kb" / "08_emergency_protocol.md"
 
 PHONE = re.compile(PHONE_PATTERN)
 RECORD_ID = re.compile(r"APT-[0-9]{3}")
-# Which Stage 2 rule the pipeline uses: "v1" (weakest term, the default) or "v2" (average
-#   term support, an experiment in groundedness_v2.py).
-GROUNDEDNESS_VERSION = "v1"
+# Which Stage 2 rule the pipeline uses: "v1" (weakest term) or "v2" (average term support,
+#   groundedness_v2.py). v2 became the default under the pre-registered ADOPTION_RULE
+#   (outputs/groundedness_v2.txt); v1 stays available with version="v1".
+GROUNDEDNESS_VERSION = "v2"
 # Word endings removed before comparing words, so "reports" matches "report".
 SUFFIXES = (("ies", "y"), ("ing", ""), ("ed", ""), ("s", ""))
 
