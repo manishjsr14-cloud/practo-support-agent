@@ -478,7 +478,46 @@ All 101 tests pass. [Test results](outputs/part4_tests.txt).
 
 ## What I learned in Part 4
 
-[I will write this myself]
+## What I learned in Part 4
+
+1. A second pair of eyes catches false claims. After the crew writes its draft answer, two AutoGen
+   agents check it. First the Policy-Compliance Reviewer lists every sentence that does not appear
+   in the policies or the appointment record. Then the Final-Editor either approves the draft
+   unchanged or removes those sentences, and returns a structured verdict. To test it, I added a
+   false sentence, "Cancellations are always free at any time.", to a draft. The reviewers caught
+   it and removed it, while normal drafts were approved unchanged, with exactly two model calls per
+   review. Even if something goes wrong earlier, a false claim is stopped before it reaches the
+   patient.
+
+2. Only the right agent should get the key. In a hospital, only the records clerk can open patient
+   files. In my crew, only the Lookup Agent can use the appointment lookup tool. If the tool is
+   given to any other agent, building the crew fails with an error, and I tested this. Fewer agents
+   with access means fewer ways for patient data to be misused.
+
+3. A high-risk system needs many controls. I classified my system as High risk because it handles
+   medical information and emergencies. I listed the protections that answer that risk: phone
+   masking, injection blocking, the groundedness check, the emergency rule, the upload key, masked
+   logs, the review stage and the budget cap.
+
+4. A budget limit should be measured, not guessed. I measured how many tokens my 15 test questions
+   used. The largest used 5,026, so I set the cap at double, 10,052. A 20,000-character request was
+   refused before any model ran, and a request that grows too big during the run is stopped too.
+   With a real AI model every token costs money, so this stops one oversized request from running
+   up a big bill.
+
+5. Remembering answers saves time and cost. The first time a policy question is asked, it takes six
+   model calls (about 210 ms). Asked again, even in a different case or without the question mark,
+   it is answered from memory with no model calls (about 33 ms). Uploading a document clears the
+   memory, so old answers are not reused, and questions about a specific appointment are never
+   cached because they depend on the person.
+
+6. I fixed my biggest weakness the honest way. My old filter refused an answer if any one word was
+   not in the policies. The new version uses the average support across all the words, so one
+   ordinary word cannot block a good answer. Before testing it, I wrote new test questions and a
+   rule to keep it only if it was better. On the new questions, wrong refusals went from 5 to 0 with
+   no wrong answers, so I adopted it. On my older Part 2 questions it is a trade-off: wrong refusals
+   went from 6 to 2, but two off-topic questions ("Mumbai hospital" and "parking fee") now get
+   through. A next version could require both a good average and no badly unsupported word.
 
 ## Groundedness v2 (adopted)
 
